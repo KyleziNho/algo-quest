@@ -1131,7 +1131,7 @@ function drawCard() {
   const sk = document.getElementById("cardskip");
   if (sk) sk.addEventListener("click", () => { const done = cardState.opts.onDone; cardState = null; done(); });
   const go = document.getElementById("cardgo");
-  if (go) go.focus(); else if (nx) nx.focus();
+  if (go) { go.addEventListener("click", cardNext); go.focus(); } else if (nx) nx.focus();
 }
 
 /* ================= UI ================= */
