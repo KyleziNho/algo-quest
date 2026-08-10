@@ -1,0 +1,1560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Algo Quest — a bite-size, Duolingo-style revision game for CM52070 Algorithms and Complexity.">
+<meta name="theme-color" content="#F2F5F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12171A" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Algo Quest">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Algo Quest · CM52070</title>
+<style>
+  :root {
+    --bg: #F2F5F3;
+    --surface: #FFFFFF;
+    --ink: #21302C;
+    --muted: #64756F;
+    --line: #D9E2DD;
+    --accent: #12866C;
+    --accent-deep: #0C6350;
+    --accent-soft: #DFF0EA;
+    --gold: #B98A1C;
+    --gold-soft: #F6ECD4;
+    --good: #2E9E63;
+    --good-deep: #237C4D;
+    --good-soft: #DFF2E6;
+    --bad: #C94F3D;
+    --bad-deep: #A03A2B;
+    --bad-soft: #F8E5E1;
+    --locked: #C4CFC9;
+    --code-bg: #EAF0ED;
+    --purple: #6B5CA8;
+    --purple-deep: #55488A;
+    --purple-soft: #EBE7F6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12171A; --surface: #1B2225; --ink: #E3E8E5; --muted: #93A29B; --line: #2B3538;
+      --accent: #3FBC9C; --accent-deep: #2E9179; --accent-soft: #1C2F2A;
+      --gold: #D8AC4A; --gold-soft: #32291A;
+      --good: #46B47C; --good-deep: #338A5E; --good-soft: #1C2F24;
+      --bad: #DD7361; --bad-deep: #B25243; --bad-soft: #33211D;
+      --locked: #3A4548; --code-bg: #232C2F;
+      --purple: #9A8CD8; --purple-deep: #7A6DB5; --purple-soft: #262133;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12171A; --surface: #1B2225; --ink: #E3E8E5; --muted: #93A29B; --line: #2B3538;
+    --accent: #3FBC9C; --accent-deep: #2E9179; --accent-soft: #1C2F2A;
+    --gold: #D8AC4A; --gold-soft: #32291A;
+    --good: #46B47C; --good-deep: #338A5E; --good-soft: #1C2F24;
+    --bad: #DD7361; --bad-deep: #B25243; --bad-soft: #33211D;
+    --locked: #3A4548; --code-bg: #232C2F;
+    --purple: #9A8CD8; --purple-deep: #7A6DB5; --purple-soft: #262133;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: ui-rounded, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: contain;
+  }
+  #app {
+    max-width: 34rem; margin: 0 auto; min-height: 100%;
+    padding: 0
+      max(1rem, env(safe-area-inset-right))
+      calc(4rem + env(safe-area-inset-bottom))
+      max(1rem, env(safe-area-inset-left));
+  }
+
+  button {
+    font: inherit; color: inherit; cursor: pointer;
+    touch-action: manipulation;
+    -webkit-user-select: none; user-select: none;
+    -webkit-touch-callout: none;
+  }
+  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .btn {
+    display: block; width: 100%;
+    background: var(--accent); color: #fff;
+    border: none; border-bottom: 4px solid var(--accent-deep);
+    border-radius: 14px;
+    padding: .85rem 1rem;
+    font-size: 1.05rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    transition: transform .06s ease;
+  }
+  .btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+  .btn[disabled] { background: var(--locked); border-bottom-color: var(--locked); color: var(--surface); cursor: default; }
+  .btn.ghost { background: var(--surface); color: var(--accent); border: 2px solid var(--line); border-bottom: 4px solid var(--line); }
+  .btn.good { background: var(--good); border-bottom-color: var(--good-deep); }
+  .btn.bad { background: var(--bad); border-bottom-color: var(--bad-deep); }
+  .btn.smart { background: var(--purple); border-bottom-color: var(--purple-deep); }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  .statbar {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; gap: .5rem; align-items: center;
+    padding: calc(.8rem + env(safe-area-inset-top)) 0 .6rem;
+    background: var(--bg);
+    border-bottom: 2px solid var(--line);
+    margin-bottom: 1rem;
+  }
+  .statbar .brand { font-weight: 900; font-size: 1.05rem; margin-right: auto; }
+  .stat {
+    display: flex; align-items: center; gap: .3rem;
+    background: var(--surface); border: 2px solid var(--line);
+    border-radius: 999px; padding: .2rem .65rem;
+    font-weight: 800; font-variant-numeric: tabular-nums; font-size: .92rem;
+  }
+  .stat.fire { color: var(--bad); }
+  .stat.goal { color: var(--muted); }
+  .stat.goal.hit { color: var(--gold); border-color: var(--gold); }
+  .iconbtn {
+    background: var(--surface); border: 2px solid var(--line);
+    border-radius: 999px; width: 2.1rem; height: 2.1rem;
+    display: grid; place-items: center; font-size: 1rem; padding: 0;
+  }
+
+  /* continue hero */
+  .hero {
+    display: flex; align-items: center; gap: .9rem;
+    background: var(--accent); color: #fff;
+    border: none; border-bottom: 5px solid var(--accent-deep);
+    border-radius: 16px; padding: 1rem 1.2rem; width: 100%;
+    text-align: left; margin: .2rem 0 1rem;
+    transition: transform .06s ease;
+  }
+  .hero:active { transform: translateY(2px); border-bottom-width: 3px; }
+  .hero .h-emoji { font-size: 2rem; }
+  .hero .h-kicker { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 800; opacity: .85; }
+  .hero .h-title { font-weight: 900; font-size: 1.15rem; }
+  .hero .h-go { margin-left: auto; font-size: 1.4rem; }
+
+  .unit-head { background: var(--accent); color: #fff; border-radius: 14px; padding: .8rem 1.1rem; margin: 1.6rem 0 1.2rem; }
+  .unit-head .u-label { font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 800; opacity: .85; }
+  .unit-head .u-title { font-weight: 900; font-size: 1.1rem; }
+  .path { display: flex; flex-direction: column; align-items: center; gap: 1.05rem; }
+  .node-wrap { display: flex; flex-direction: column; align-items: center; width: 9.5rem; position: relative; }
+  .node {
+    width: 4.4rem; height: 4.4rem; border-radius: 50%;
+    font-size: 1.7rem; display: grid; place-items: center;
+    background: var(--surface);
+    border: 3px solid var(--line); border-bottom-width: 6px;
+    position: relative;
+    transition: transform .06s ease;
+  }
+  .node:active { transform: translateY(2px); }
+  .node.avail { border-color: var(--accent); background: var(--accent-soft); }
+  .node.done { border-color: var(--gold); background: var(--gold-soft); }
+  .node.weak { border-color: var(--bad); }
+  .node.locked { filter: grayscale(1); opacity: .55; cursor: default; }
+  .node .tick {
+    position: absolute; right: -4px; bottom: -4px;
+    background: var(--gold); color: #fff;
+    width: 1.5rem; height: 1.5rem; border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: .8rem; font-weight: 900;
+    border: 2px solid var(--bg);
+  }
+  .node .weakdot {
+    position: absolute; left: -4px; top: -4px;
+    background: var(--bad); color: #fff;
+    border-radius: 999px; font-size: .62rem; font-weight: 900;
+    padding: .05rem .4rem; border: 2px solid var(--bg);
+  }
+  .node-label { font-size: .78rem; font-weight: 700; color: var(--muted); text-align: center; margin-top: .35rem; }
+  .start-pill {
+    font-size: .68rem; font-weight: 900; letter-spacing: .1em;
+    color: var(--accent); background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 999px; padding: .1rem .6rem; margin-bottom: .3rem;
+    animation: bob 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+
+  .quickcard {
+    background: var(--surface); border: 2px solid var(--line); border-radius: 14px;
+    padding: 1rem 1.1rem; margin: 1rem 0; display: flex; gap: .9rem; align-items: center;
+  }
+  .quickcard.smartcard { border-color: var(--purple); background: var(--purple-soft); }
+  .quickcard .qc-emoji { font-size: 1.8rem; }
+  .quickcard .qc-text { flex: 1; }
+  .quickcard .qc-title { font-weight: 900; }
+  .quickcard .qc-sub { color: var(--muted); font-size: .86rem; }
+  .smartcard .qc-sub b { color: var(--purple); }
+  .quickcard .btn { width: auto; padding: .55rem .9rem; font-size: .85rem; }
+
+  /* ===== cards (onboarding + topic intros) ===== */
+  .cardscreen {
+    min-height: 88vh;
+    min-height: 88dvh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; gap: 1rem; cursor: pointer;
+    padding: 1rem;
+  }
+  .cardscreen .c-emoji { font-size: 4.2rem; animation: pop .35s ease; }
+  .cardscreen .c-vis { width: min(330px, 92vw); animation: pop .35s ease; }
+  .cardscreen .c-vis svg { width: 100%; height: auto; display: block; font-family: inherit; }
+  .cardscreen .c-formula {
+    background: var(--surface); border: 2px solid var(--line); border-radius: 16px;
+    padding: 1.2rem 1.5rem; max-width: min(330px, 92vw); animation: pop .35s ease;
+  }
+  .c-formula .fx {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 1.35rem; font-weight: 700; line-height: 1.7; letter-spacing: .01em;
+  }
+  .c-formula .flegend {
+    display: flex; gap: .5rem 1.1rem; justify-content: center; flex-wrap: wrap;
+    margin-top: .7rem; font-size: .78rem; font-weight: 800; color: var(--muted);
+  }
+  .fa { color: var(--accent); } .fb { color: var(--gold); } .fc { color: var(--purple); } .fd { color: var(--bad); }
+  .cardscreen .c-code {
+    text-align: left; margin: 0;
+    background: var(--code-bg); border: 2px solid var(--line); border-radius: 14px;
+    padding: 1rem 1.3rem; max-width: min(330px, 92vw); overflow-x: auto;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 1rem; font-weight: 600; line-height: 1.7; white-space: pre;
+    animation: pop .35s ease;
+  }
+  .c-code .fa, .c-code .fc { font-weight: 800; }
+  .cardscreen .c-kicker { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 800; }
+  .cardscreen .c-text { font-size: 1.35rem; font-weight: 800; max-width: 22rem; text-wrap: balance; animation: rise .35s ease; }
+  .cardscreen .c-hint { color: var(--muted); font-size: .85rem; }
+  .cardscreen .dots { display: flex; gap: .45rem; margin-top: .6rem; }
+  .cardscreen .dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--line); }
+  .cardscreen .dot.on { background: var(--accent); }
+  .cardscreen .btn { max-width: 16rem; margin-top: .5rem; }
+  .cardscreen .skip { background: none; border: none; color: var(--muted); font-size: .85rem; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+  .cardnav { display: flex; align-items: center; gap: 1.1rem; margin-top: .5rem; }
+  .navbtn {
+    width: 3rem; height: 3rem; border-radius: 50%;
+    background: var(--surface); color: var(--accent);
+    border: 2px solid var(--line); border-bottom: 4px solid var(--line);
+    font-size: 1.5rem; font-weight: 900; line-height: 1;
+    display: grid; place-items: center; padding: 0 0 .15rem;
+    transition: transform .06s ease;
+  }
+  .navbtn:active { transform: translateY(2px); border-bottom-width: 2px; }
+  .navbtn[disabled] { opacity: .35; cursor: default; }
+  .navbtn[disabled]:active { transform: none; border-bottom-width: 4px; }
+  .navbtn.primary { background: var(--accent); color: #fff; border-color: var(--accent-deep); }
+  .cardscreen .dots { margin-top: 0; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .lesson-top { display: flex; align-items: center; gap: .7rem; padding: 1rem 0 .6rem; }
+  .quit { background: none; border: none; font-size: 1.3rem; color: var(--muted); padding: .2rem .4rem; }
+  .pbar { flex: 1; height: 14px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .pbar .fill { height: 100%; width: 0%; background: var(--accent); border-radius: 999px; transition: width .25s ease; }
+  .smart-run .pbar .fill { background: var(--purple); }
+  .hearts { font-weight: 900; color: var(--bad); font-size: .98rem; white-space: nowrap; }
+  .hearts.lost { animation: shake .35s ease; }
+  .infobtn { background: none; border: 2px solid var(--line); border-radius: 999px; width: 1.7rem; height: 1.7rem; display: grid; place-items: center; font-size: .8rem; color: var(--muted); padding: 0; }
+
+  .combo {
+    position: fixed; top: calc(4.2rem + env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); z-index: 20;
+    background: var(--gold); color: #fff;
+    font-weight: 900; font-size: .9rem;
+    border-radius: 999px; padding: .25rem .8rem;
+    animation: comboIn .3s cubic-bezier(.2, 1.6, .4, 1);
+    pointer-events: none;
+  }
+  @keyframes comboIn { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  .qtag {
+    display: inline-block;
+    font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--gold); background: var(--gold-soft);
+    padding: .12rem .55rem; border-radius: 6px; margin: 0 .3rem .5rem 0;
+  }
+  .qtag.topic { color: var(--purple); background: var(--purple-soft); }
+  .qtag.retry { color: var(--bad); background: var(--bad-soft); }
+  .qprompt { font-size: 1.12rem; font-weight: 800; margin: .2rem 0 1rem; text-wrap: balance; }
+  .qcode {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: .86rem;
+    background: var(--code-bg); border: 2px solid var(--line); border-radius: 10px;
+    padding: .7rem .9rem; margin: 0 0 1rem;
+    overflow-x: auto; white-space: pre; line-height: 1.5;
+  }
+  .opts { display: flex; flex-direction: column; gap: .6rem; }
+  .opt {
+    text-align: left;
+    background: var(--surface);
+    border: 2px solid var(--line); border-bottom-width: 4px;
+    border-radius: 12px;
+    padding: .7rem .95rem;
+    font-size: .98rem; font-weight: 600;
+    display: flex; gap: .7rem; align-items: baseline;
+    transition: transform .05s ease;
+  }
+  .opt:active { transform: translateY(1px); }
+  .opt .key {
+    font-size: .72rem; font-weight: 800; color: var(--muted);
+    border: 1.5px solid var(--line); border-radius: 6px;
+    padding: .02rem .4rem; flex: none;
+  }
+  .opt.sel { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.sel .key { color: var(--accent); border-color: var(--accent); }
+  .opt.right { border-color: var(--good); background: var(--good-soft); animation: bounce .4s ease; }
+  .opt.wrong { border-color: var(--bad); background: var(--bad-soft); animation: shake .4s ease; }
+  .opt[disabled] { cursor: default; }
+  .opt code, .qprompt code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; background: var(--code-bg); border-radius: 4px; padding: .05em .3em; font-size: .9em; }
+  @keyframes bounce { 0% { transform: scale(1); } 35% { transform: scale(1.04); } 70% { transform: scale(.99); } 100% { transform: scale(1); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+
+  .bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--surface); border-top: 2px solid var(--line); touch-action: manipulation; }
+  .bottom .inner {
+    max-width: 34rem; margin: 0 auto; position: relative;
+    padding: .9rem
+      max(1rem, env(safe-area-inset-right))
+      calc(.9rem + env(safe-area-inset-bottom))
+      max(1rem, env(safe-area-inset-left));
+  }
+  .bottom.fb-good { background: var(--good-soft); border-top-color: var(--good); cursor: pointer; }
+  .bottom.fb-bad { background: var(--bad-soft); border-top-color: var(--bad); cursor: pointer; }
+  .fb-head { font-weight: 900; font-size: 1.05rem; margin: 0 0 .15rem; }
+  .fb-good .fb-head { color: var(--good-deep); }
+  .fb-bad .fb-head { color: var(--bad-deep); }
+  .fb-why { font-size: .92rem; margin: 0 0 .7rem; }
+  .xpfly {
+    position: absolute; right: 1.2rem; top: -0.4rem;
+    font-weight: 900; color: var(--gold); font-size: 1.1rem;
+    animation: flyup 1s ease forwards; pointer-events: none;
+  }
+  @keyframes flyup { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-2.4rem); } }
+  .spacer { height: calc(10rem + env(safe-area-inset-bottom)); }
+
+  .center { text-align: center; padding-top: 3rem; }
+  .big-emoji { font-size: 3.6rem; animation: pop .4s ease; }
+  @keyframes pop { from { transform: scale(.4); } to { transform: scale(1); } }
+  .res-title { font-size: 1.5rem; font-weight: 900; margin: .6rem 0 1.2rem; }
+  .res-cards { display: flex; gap: .7rem; justify-content: center; margin-bottom: 1.6rem; flex-wrap: wrap; }
+  .res-card { background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: .6rem 1rem; min-width: 6.2rem; }
+  .res-card .rc-num { font-size: 1.3rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .res-card .rc-label { font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  .res-card.gold .rc-num { color: var(--gold); }
+  .res-card.green .rc-num { color: var(--good); }
+  .goalbanner {
+    background: var(--gold-soft); color: var(--gold);
+    font-weight: 900; border-radius: 12px; padding: .6rem 1rem;
+    margin: 0 auto 1rem; max-width: 20rem;
+    animation: pop .4s ease;
+  }
+  .muted { color: var(--muted); }
+  .small { font-size: .86rem; }
+
+  .stats-h { font-size: 1.35rem; font-weight: 900; margin: 1.2rem 0 .8rem; }
+  .mastery-row {
+    background: var(--surface); border: 2px solid var(--line); border-radius: 12px;
+    padding: .7rem .9rem; margin: .5rem 0;
+    display: grid; grid-template-columns: 2.1rem 1fr auto; gap: .35rem .7rem; align-items: center;
+  }
+  .mastery-row .m-emoji { font-size: 1.4rem; grid-row: span 2; }
+  .mastery-row .m-title { font-weight: 800; font-size: .95rem; display: flex; gap: .5rem; align-items: baseline; flex-wrap: wrap; }
+  .m-badge { font-size: .64rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; border-radius: 5px; padding: .08rem .4rem; }
+  .m-badge.weak { color: var(--bad); background: var(--bad-soft); }
+  .m-badge.mid { color: var(--gold); background: var(--gold-soft); }
+  .m-badge.strong { color: var(--good); background: var(--good-soft); }
+  .m-badge.na { color: var(--muted); background: var(--code-bg); }
+  .mastery-row .m-pct { font-weight: 900; font-variant-numeric: tabular-nums; color: var(--muted); font-size: .9rem; grid-row: span 2; }
+  .mbar { grid-column: 2; height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .mbar .mfill { height: 100%; border-radius: 999px; background: var(--good); transition: width .6s ease; }
+  .mbar .mfill.weak { background: var(--bad); }
+  .mbar .mfill.mid { background: var(--gold); }
+  .weakspot {
+    background: var(--surface); border: 2px solid var(--bad); border-radius: 12px;
+    padding: .8rem 1rem; margin: .5rem 0;
+    display: flex; gap: .8rem; align-items: center;
+  }
+  .weakspot .ws-text { flex: 1; }
+  .weakspot .ws-title { font-weight: 900; }
+  .weakspot .ws-sub { font-size: .84rem; color: var(--muted); }
+  .weakspot .btn { width: auto; padding: .5rem .8rem; font-size: .8rem; }
+  .howbox { background: var(--purple-soft); border-radius: 12px; padding: .8rem 1rem; font-size: .88rem; margin: 1rem 0; }
+  .howbox b { color: var(--purple); }
+
+  .confetti-bit { position: fixed; top: -20px; z-index: 100; pointer-events: none; border-radius: 3px; }
+
+  /* touch devices: bigger targets, no keyboard hints */
+  @media (pointer: coarse) {
+    .iconbtn { width: 2.6rem; height: 2.6rem; font-size: 1.15rem; }
+    .infobtn { width: 2.1rem; height: 2.1rem; }
+    .quit { padding: .4rem .7rem; }
+    .opt { padding: .85rem 1rem; }
+    .opt .key { display: none; }
+  }
+  /* small phones: keep the stat bar on one line */
+  @media (max-width: 380px) {
+    .statbar { gap: .35rem; }
+    .statbar .brand { font-size: .95rem; }
+    .stat { padding: .2rem .5rem; font-size: .85rem; }
+    .hero { padding: .9rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+"use strict";
+const RM = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ================= QUESTION BANK ================= */
+const LEVELS = [
+{ id:"steps", emoji:"⏱️", title:"Counting steps", unit:"Unit 1 · Foundations", blurb:"What Θ, O and 'complexity' mean",
+  intro:[ { t:"An app that feels instant with 10 users can crash with a million. Big-O predicts that — <b>before</b> it happens.", k:"Why it exists", e:"💡" },
+          { t:"An algorithm is just a recipe of steps. Its 'complexity' = how the number of steps grows as the pile of data grows. (n = the size of the pile.)" },
+          { t:"Double the pile: some recipes do a bit more work, some do WAY more. The steep curve is the killer.", v:"race" },
+          { t:"To name a speed: keep the boss term, bin the rest.", f:"<div class='fx'>3n² + 5n&ensp;→&ensp;<span class='fa'>Θ(n²)</span></div><div class='flegend'><span class='fa'>keep the boss term</span><span>bin the small stuff</span></div>" },
+          { t:"The speed ladder, calm → explosive. Half the questions are just knowing this order.", f:"<div class='fx'><span class='fa'>log n</span> &lt; n &lt; n log n &lt; <span class='fd'>n²</span> &lt; <span class='fd'>2ⁿ</span></div><div class='flegend'><span class='fa'>lovely</span><span>fine</span><span class='fd'>danger</span></div>" } ],
+  qs:[
+  { q:"“Complexity” of an algorithm measures…", o:["How hard the code is to read","How the amount of work grows as the input gets bigger","How many megabytes it uses","How long the source code is"], a:1, why:"We count rough steps as a function of input size n — the trend, not seconds." },
+  { q:"What is the Θ class of 0.0001n² + 345n?", o:["Θ(n)","Θ(n²)","Θ(n³)","Θ(n log n)"], a:1, why:"Keep the fastest-growing term (n² beats n), drop its constant. Tiny constants don't save you — n² wins eventually." },
+  { q:"What is the Θ class of 5n + 3n<sup>1.5</sup> + n log n?", o:["Θ(n)","Θ(n log n)","Θ(n<sup>1.5</sup>)","Θ(n²)"], a:2, why:"Compare exponents: n¹, n·log n (just above 1), n^1.5. Biggest exponent wins." },
+  { q:"What is the Θ class of 2ⁿ + n² + 3ⁿ?", o:["Θ(2ⁿ)","Θ(n²)","Θ(3ⁿ)","Θ(6ⁿ)"], a:2, why:"With exponentials the bigger base always wins: (3/2)ⁿ explodes, so 3ⁿ dwarfs 2ⁿ." },
+  { q:"What is the Θ class of 3log₂n + 2log₃n?", o:["Θ(log n)","Θ(n)","Θ((log n)²)","They can't be combined"], a:0, why:"Logs in different bases differ only by a constant factor — and constants get dropped. That's why we rarely write the base." },
+  { q:"Slowest to fastest growth — which order is right?", o:["n, log n, n², n log n","log n, n, n log n, n²","log n, n log n, n, n²","n, n log n, log n, n²"], a:1, why:"The ladder: 1 < log n < n < n log n < n² < n³ < 2ⁿ. Memorise it." },
+  { q:"A Θ(n³) algorithm does 30 operations at n = 10. Roughly how many at n = 1000?", o:["30,000","3 million","30 million","900,000"], a:2, why:"n grew ×100, so work grows ×100³ = ×1,000,000. 30 × 10⁶ = 30 million. Exam arithmetic is powers of ten — no calculator needed.", tag:"Sheet 2.1" },
+  { q:"You double the input of a Θ(n²) algorithm. The work roughly…", o:["Doubles","Triples","Quadruples","Stays the same"], a:2, why:"(2n)² = 4n². Quadratic means doubling input quadruples work." },
+  { q:"What does f = O(g) actually promise?", o:["f equals g","From some point on, f ≤ c·g for some fixed constant c","f is always smaller than g","f grows faster than g"], a:1, why:"O is an UPPER bound: eventually, up to a constant factor, f stays below g. Ω is the same with ≥, and Θ means both at once." },
+  { q:"f is O(g) and g is O(h). What can you conclude?", o:["Nothing","f is O(h) — Big-O is transitive","h is O(f)","f = g"], a:1, why:"Chain the two constants: f ≤ c₁·g ≤ c₁·c₂·h. The same argument works for Ω and Θ.", tag:"Sheet 2.1" },
+  { q:"Towers of Hanoi with n discs needs at least…", o:["n moves","n² moves","2ⁿ − 1 moves","n! moves"], a:2, why:"M(n) = 2M(n−1) + 1 solves to 2ⁿ − 1: move n−1 discs off, move the big one, move n−1 back — and no solution can beat it.", tag:"Sheet 2.1" },
+  { q:"n! (= 1×2×…×n) compared with nⁿ:", o:["n! is O(nⁿ) but NOT Θ(nⁿ)","They grow identically","n! grows faster","n! is Θ(nⁿ)"], a:0, why:"Each of n!'s factors is ≤ n, so n! ≤ nⁿ. But half its factors are ≤ n/2, so n!/nⁿ shrinks to 0 — no constant keeps them level.", tag:"Sheet 2.1 harder" },
+  { q:"Order these, slowest growth first: 2n², n log n, 0.1n, 2ⁿ", o:["0.1n, n log n, 2n², 2ⁿ","n log n, 0.1n, 2n², 2ⁿ","0.1n, 2n², n log n, 2ⁿ","2ⁿ, 2n², n log n, 0.1n"], a:0, why:"Constants don't matter: n < n log n < n² < 2ⁿ. This is sheet 2.1 Q2 verbatim.", tag:"Sheet 2.1" },
+]},
+{ id:"loops", emoji:"🔁", title:"Loops → steps", unit:"Unit 1 · Foundations", blurb:"Read code, count the work",
+  intro:[ { t:"GTA Online took <b>6 minutes to load — for 7 years</b>. The cause: one hidden double-loop. One fan found it. Loops are where slowness hides.", k:"Why it exists", e:"💡" },
+          { t:"A loop repeats steps. A loop INSIDE a loop multiplies them: the inner line runs n × n = n² times.", code:"repeat n times:        <span class='fa'>← outer</span>\n  repeat n times:      <span class='fa'>← inner</span>\n    do_thing()         <span class='fd'>← runs n²×</span>" },
+          { t:"If the inner loop only goes up to i, you fill half the square — and half of n² still counts as Θ(n²).", v:"tri" },
+          { t:"A loop that HALVES the problem each time runs only log n times. 1000 → 1 takes about 10 halvings.", code:"while n > 1:\n  n = n / 2      <span class='fa'>← ~log n laps</span>" } ],
+  qs:[
+  { q:"One loop running i = 0 … n−1 does Θ(?) work.", o:["Θ(1)","Θ(log n)","Θ(n)","Θ(n²)"], a:2, why:"The body runs n times. One pass over the data = linear." },
+  { q:"A loop to n with another loop to n inside it does Θ(?) work.", o:["Θ(n)","Θ(2n)","Θ(n²)","Θ(nⁿ)"], a:2, why:"n outer runs × n inner runs each = n². (And Θ(2n) is the same as Θ(n) — constants drop.)" },
+  { q:"Inner loop runs up to i (the outer counter): 0 + 1 + 2 + … + (n−1) steps total. That's Θ(?)", o:["Θ(n)","Θ(n log n)","Θ(n²)","Θ(n³)"], a:2, why:"That sum is ≈ n²/2 — the triangle pattern. Half of n² still grows like n²." },
+  { q:"How many times does tick() run?", code:"for (int i = 0; i < 2*n; i++)\n  for (int j = 0; j < i; j = j + 2)\n    tick();", o:["Θ(n)","Θ(n log n)","Θ(n²)","Θ(2ⁿ)"], a:2, why:"Inner runs ≈ i/2 times; summing over i up to 2n gives ≈ n². The 2n and the step-by-2 are constants — they vanish.", tag:"Mock Q4" },
+  { q:"A loop that halves n each time (n → n/2 → n/4 → … → 1) runs Θ(?) times.", o:["Θ(n)","Θ(log n)","Θ(√n)","Θ(n/2)"], a:1, why:"“How many times can I halve n before 1?” is the definition of log₂n. Halving loops = logs." },
+  { q:"A loop to n whose body always does exactly 10 operations is…", o:["Θ(10n), which is different from Θ(n)","Θ(n)","Θ(n¹⁰)","Θ(10ⁿ)"], a:1, why:"10n and n grow the same way — constant multipliers never change the Θ class." },
+  { q:"Two separate loops, one AFTER the other, each running n times. Total?", o:["Θ(n²)","Θ(n) — one-after-another ADDS, nesting MULTIPLIES","Θ(2ⁿ)","Θ(n log n)"], a:1, why:"n + n = 2n = Θ(n). Only a loop INSIDE a loop multiplies. Mixing these up is the classic MCQ trap." },
+  { q:"Three nested loops, each to n. The innermost line runs…", o:["Θ(n²)","Θ(3n)","Θ(n³)","Θ(nⁿ)"], a:2, why:"n × n × n. Every extra nesting level multiplies by another n." },
+  { q:"EXACTLY how many runs if the inner loop goes up to i, for i = 0…n−1?", o:["n²","n(n−1)/2 — the triangle number","n log n","2ⁿ"], a:1, why:"0+1+2+…+(n−1) = n(n−1)/2. Still Θ(n²), but the exact count is what swap-counting questions use." },
+  { q:"A loop over n items where each step does log n work costs…", o:["Θ(n)","Θ(log n)","Θ(n log n)","Θ(n²)"], a:2, why:"Multiply: n iterations × log n each. Exactly why heapsort (n deletes × log n sift) is Θ(n log n)." },
+]},
+{ id:"master", emoji:"🧮", title:"Master Theorem", unit:"Unit 1 · Foundations", blurb:"The 3-line recipe for recurrences",
+  intro:[ { t:"Lots of fast recipes work by <b>splitting the job, solving the pieces, and gluing them back</b>. This theorem tells you the speed of ANY splitter — in one line.", k:"Why it exists", e:"💡" },
+          { t:"The formula is just that sentence written down. Read it out loud:", f:"<div class='fx'>T(n) = <span class='fa'>a</span>·T(n/<span class='fb'>b</span>) + <span class='fc'>nᶜ</span></div><div class='flegend'><span class='fa'>a = how many pieces</span><span class='fb'>b = how much smaller</span><span class='fc'>nᶜ = glue work</span></div>" },
+          { t:"So the job keeps splitting into smaller copies — and every box pays its own little bit of work.", v:"mt1" },
+          { t:"Two rivals: the ONE big job at the top vs the SWARM of tiny jobs at the bottom.", v:"mt2" },
+          { t:"Heavier side wins. Perfectly balanced? Multiply by log n. That's all three cases.", v:"mt3" },
+          { t:"Try one: merge sort splits into 2 halves + n glue work. c = 1, log₂2 = 1 → a tie. Done — that's a full exam answer.", f:"<div class='fx'>T(n) = 2T(n/2) + n&ensp;⇒&ensp;<span class='fa'>Θ(n log n)</span></div><div class='flegend'><span>merge sort</span><span class='fa'>the tie case</span></div>" } ],
+  qs:[
+  { q:"T(n) = a·T(n/b) + n^c describes an algorithm that…", o:["Loops a times over n items","Solves a smaller copies of size n/b, plus n^c extra work","Solves b copies of size n/a","Always takes n^c steps"], a:1, why:"Read it out loud: a sub-problems, each 1/b of the size, plus n^c to split/combine. Merge sort: 2 halves + n merge = 2T(n/2) + n." },
+  { q:"What is log₂8?", o:["2","3","4","8"], a:1, why:"2³ = 8. The magic number log_b a asks: what power of b gives a? Cheat table: log₂2=1, log₂3≈1.58, log₂4=2, log₂8=3." },
+  { q:"Master Theorem, the whole recipe: compare c with log_b a. Which line is WRONG?", o:["c < log_b a → Θ(n^(log_b a))","c = log_b a → Θ(n^c · log n)","c > log_b a → Θ(n^c)","c = log_b a → Θ(n^c)"], a:3, why:"The tie case bolts on a log: Θ(n^c log n). The other three lines are the entire theorem — recursion wins, tie, or combine-work wins." },
+  { q:"Merge sort: T(n) = 2T(n/2) + n. Solution?", o:["Θ(n)","Θ(n log n)","Θ(n²)","Θ(log n)"], a:1, why:"a=2, b=2, c=1. log₂2 = 1 = c → tie case → Θ(n¹ · log n) = Θ(n log n)." },
+  { q:"T(n) = 3T(n/2) + n². Solution?", o:["Θ(n²)","Θ(n^1.58)","Θ(n² log n)","Master Theorem doesn't apply"], a:0, why:"log₂3 ≈ 1.58 < c = 2, so the n² combine work dominates → Θ(n²).", tag:"Mock Q2" },
+  { q:"T(n) = 8T(n/2) + n³. Solution?", o:["Θ(n³)","Θ(n^2.5)","Θ(n³ log n)","Θ(n⁴)"], a:2, why:"log₂8 = 3 = c → tie → Θ(n³ log n).", tag:"Mock Q3" },
+  { q:"Which recurrence can the Master Theorem NOT solve?", o:["T(n) = 2T(n/2) + n","T(n) = T(n−1) + T(n−2) + 1","T(n) = 3T(n/3) + n","T(n) = 8T(n/2) + n³"], a:1, why:"Master needs the size to shrink by DIVISION (n/b). Fibonacci's shrinks by subtraction — you handle it with induction instead. The lecturer said knowing this limit is examinable.", tag:"Lecturer tip" },
+  { q:"Buggy merge sort where merging costs n²: T(n) = 2T(n/2) + n². Solution?", o:["Θ(n log n)","Θ(n²)","Θ(n² log n)","Θ(n³)"], a:1, why:"c = 2 > log₂2 = 1 → the combine step dominates → Θ(n²). One bad line makes the whole sort quadratic.", tag:"Sheet 2.3" },
+  { q:"Stoogesort (sort first ⅔, last ⅔, first ⅔ again): T(n) = 3T(2n/3) + 1. Result? (log₁.₅3 ≈ 2.71)", o:["Θ(n log n)","Θ(n²)","Θ(n^2.71) — worse than insertion sort!","Θ(n)"], a:2, why:"a=3, b=3/2, c=0 → the recursion tree wins massively. Moral: being recursive doesn't make it fast.", tag:"Sheet 2.3" },
+  { q:"Recursive minimum of an n×n matrix: 4 quadrants + 3 comparisons → C(n) = 4C(n/2) + 3. Result?", o:["Θ(n)","Θ(n²)","Θ(n² log n)","Θ(log n)"], a:1, why:"a=4, b=2, c=0. log₂4 = 2 > 0 → Θ(n²). Sensible: there are n² entries and no algorithm can skip looking at them.", tag:"Sheet 2.3" },
+  { q:"Miracle merge that costs only √n: T(n) = 2T(n/2) + √n. Result?", o:["Θ(√n)","Θ(n log n)","Θ(n) — the recursion side dominates","Θ(n√n)"], a:2, why:"c = ½ < log₂2 = 1 → case 1 → Θ(n). When the combine step is cheap, the tree of copies sets the price.", tag:"Sheet 2.3" },
+  { q:"3-way merge sort (split into thirds): T(n) = 3T(n/3) + n. Result?", o:["Θ(n log n) — same as 2-way","Θ(n²)","Θ(n^1.58)","Θ(n)"], a:0, why:"log₃3 = 1 = c → tie → Θ(n log n). Splitting into more pieces doesn't change the class.", tag:"Sheet 2.3" },
+  { q:"An algorithm splits a size-n job into 2 jobs of size n/4, plus n work. Its recurrence is…", o:["T(n) = 4T(n/2) + n","T(n) = 2T(n/4) + n","T(n) = 2T(n/2) + n/4","T(n) = T(n/2) + 4n"], a:1, why:"a = number of sub-jobs = 2; b = shrink factor = 4. Reading a and b off a description is half the exam skill." },
+]},
+{ id:"sorting", emoji:"🃏", title:"Sorting & inversions", unit:"Unit 2 · Data structures", blurb:"Insertion sort, Shell sort, counting swaps",
+  intro:[ { t:"Early computers spent <b>half their lives just sorting</b>. The 'slide cards into place' trick is still inside Python and Java today.", k:"Why it exists", e:"💡" },
+          { t:"Insertion sort = sorting cards in your hand: take the next card, slide it left until it fits." },
+          { t:"An 'inversion' = a pair in the wrong order. A neighbour swap fixes one. A long throw can fix several.", v:"swap" },
+          { t:"That one equation answers every 'how many swaps?' question in the exam.", f:"<div class='fx'>swaps = <span class='fa'>inversions</span></div><div class='flegend'><span class='fa'>count the wrong-order pairs</span><span>that's the work</span></div>" } ],
+  qs:[
+  { q:"An 'inversion' in an array is…", o:["A pair in the wrong order (bigger one first)","An element in the wrong half","A swap performed by a sort","A reversed subarray"], a:0, why:"Any pair where the left element is bigger than the right one. A sorted array has 0; a reversed one has all n(n−1)/2." },
+  { q:"How many inversions does [2, 1, 3] have?", o:["0","1","2","3"], a:1, why:"Check pairs: (2,1) ✓ inverted, (2,3) no, (1,3) no. Just one." },
+  { q:"How many inversions does [1, 5, 0, 3, 2, 4] have?", o:["4","5","6","8"], a:2, why:"1 beats 0 (1); 5 beats 0,3,2,4 (4); 3 beats 2 (1). Total 6.", tag:"Sheet 2.2" },
+  { q:"Insertion sort's number of swaps equals…", o:["n−1, always","The number of inversions in the input","n²/2, always","The number of distinct values"], a:1, why:"Each neighbour-swap fixes exactly one inversion — no more, no fewer. That single fact powers all swap-counting questions." },
+  { q:"Why is insertion sort Θ(n²) on average?", o:["It compares every pair twice","A random array has ≈ n²/4 inversions, and each swap fixes one","It always scans the whole array per element","Because it's recursive"], a:1, why:"A random pair is inverted with probability ½ → expected inversions = n(n−1)/4 → that many swaps." },
+  { q:"[4, 2, 6, 1, 0, 3], Shell sort stride 3: what does the array look like after the stride-3 pass?", o:["[1, 0, 3, 4, 2, 6]","[2, 4, 6, 0, 1, 3]","[1, 2, 6, 4, 0, 3]","[4, 2, 6, 0, 1, 3]"], a:0, why:"Stride 3 pairs slots {0,3}, {1,4}, {2,5}: (4,1)→(1,4), (2,0)→(0,2), (6,3)→(3,6). Write back: [1,0,3,4,2,6].", tag:"Mock Q5" },
+  { q:"Same array: insertion sort needs 10 swaps, Shell (strides 3, 1) needs 3 + 3 = 6. Why can Shell win?", o:["It skips some elements entirely","A long-distance swap can fix several inversions at once","It uses extra memory","It doesn't need to finish sorting"], a:1, why:"Neighbour swaps fix exactly 1 inversion; Shell's stride-3 swaps fixed 7 inversions with 3 swaps. That's the entire idea of Shell sort.", tag:"Mock Q6" },
+  { q:"Insertion sort on an ALREADY sorted array takes…", o:["Θ(n²)","Θ(n log n)","Θ(n)","Θ(1)"], a:2, why:"Zero inversions → zero swaps — it just walks through once checking. Best case linear." },
+  { q:"Which ordering of 0…5 has the MOST inversions, and how many?", o:["Random order — 30","Reverse order — 15","Reverse order — 36","Sorted order — 15"], a:1, why:"Reversed, every pair is wrong: 6·5/2 = 15. In general the max is n(n−1)/2 and sorted order has 0.", tag:"Sheet 2.2" },
+  { q:"On average, a random shuffle of n items contains how many inversions?", o:["n(n−1)/2","n(n−1)/4 — each pair is wrong half the time","n","n²"], a:1, why:"Each of the n(n−1)/2 pairs is inverted with probability ½. This is exactly WHY insertion sort's average case is Θ(n²).", tag:"Sheet 2.2" },
+  { q:"A 'loop invariant' (course definition) is a statement that…", o:["Is always true everywhere","If true before the loop body runs, is true after it runs","Is checked by the compiler","Makes loops faster"], a:1, why:"That's the whole definition. To prove code correct you ALSO need it true at the start and strong enough at the end — next question.", tag:"Sheet 2.2" },
+  { q:"Which invariant actually proves insertion sort correct?", o:["'The array contains numbers'","'a[0..i−1] is sorted' — true at start, kept by each insert, implies sorted at the end","'2+2=4'","'The array is fully sorted'"], a:1, why:"The others technically pass the definition but are USELESS — trivial, or not true on entry. Useful = true initially + preserved + implies the goal. Sheet 2.2's trick question.", tag:"Sheet 2.2 Q7" },
+  { q:"Your data is ALMOST sorted (a log file with a few stragglers). Best sort?", o:["Insertion sort — cost ≈ n + the few inversions","Stoogesort","Selection sort","Always mergesort"], a:0, why:"Insertion sort costs one pass plus swaps = inversions. Few inversions → nearly Θ(n). This is why Timsort (Python/Java) uses it inside." },
+]},
+{ id:"trees", emoji:"🌳", title:"BSTs & AVL trees", unit:"Unit 2 · Data structures", blurb:"Search trees and rotations",
+  intro:[ { t:"1962: the first data structure that <b>tidies itself</b>. It's why finding one row among a billion takes ~30 steps, not a billion.", k:"Why it exists", e:"💡" },
+          { t:"A search tree: smaller things hang left, bigger things hang right. Finding = walking down, ditching half the tree at every step." },
+          { t:"But if it droops into a chain, the magic dies. AVL rule: no branch may be 2 deeper than its sibling." },
+          { t:"The fix is a 'rotation': of the 3 trouble nodes, promote the middle one.", v:"rot" } ],
+  qs:[
+  { q:"In a binary search tree, values smaller than a node go…", o:["Left","Right","Either side","To the leaves"], a:0, why:"Smaller left, bigger right — at every node. That's the whole definition, and it's what makes searching fast: each step discards half the tree (if it's balanced)." },
+  { q:"Insert 1, 2, 3 in order into a plain BST (no balancing). You get…", o:["A perfectly balanced tree","A chain leaning right","A chain leaning left","An error"], a:1, why:"Each value is bigger than the last, so it keeps going right. Chains are why plain BSTs can degrade to O(n) search." },
+  { q:"The AVL rule at every node is…", o:["Left and right subtree HEIGHTS differ by at most 1","Left and right have equal node counts","The tree is a perfect triangle","Every level is full"], a:0, why:"Only heights, only off-by-one. That's cheap to maintain and enough to force height ≈ log n." },
+  { q:"The exam shortcut for any single AVL rotation: of the three nodes on the trouble path…", o:["The biggest becomes parent","The middle value becomes the parent, other two its children","The newest becomes the root","The smallest becomes parent"], a:1, why:"Promote the middle value. Insert 1,2,3 → trouble path 1,2,3 → 2 becomes parent of 1 and 3. Works for every rotation case, single or double." },
+  { q:"Insert 3, 6, 10, 9, 8, 7 into an AVL tree (rebalancing throughout). The final root is…", o:["6","8","9","10"], a:1, why:"Three fixes: 3,6,10 → promote 6. Then 8 breaks node 10 (path 10,9,8) → promote 9. Then 7 breaks the root 6 (path 6,9,8 towards 7) → promote 8. Root = 8.", tag:"Mock Q7 · 4 marks" },
+  { q:"An AVL tree holds 7 elements. Its height can be… (single node = height 0)", o:["Exactly 2","2 or 3","2, 3 or 4","Anything up to 6"], a:1, why:"Perfectly balanced 7 nodes → height 2. The thinnest legal height-3 AVL tree needs exactly N(3) = 7 nodes, so 3 is possible; height 4 needs 12+. Plain BSTs manage 2–6." },
+  { q:"Why are AVL operations O(log n)? Because the thinnest AVL tree of height h…", o:["Has exactly 2^h nodes","Grows like Fibonacci — exponentially — so n nodes force h = O(log n)","Has h² nodes","Is a chain"], a:1, why:"N(h) = N(h−1) + N(h−2) + 1: Fibonacci in a hat. Exponential node count per height means height stays logarithmic in n.", tag:"Sheet 2.6" },
+  { q:"Searching a PLAIN unbalanced BST in the worst case costs…", o:["O(1)","O(log n)","O(n)","O(n log n)"], a:2, why:"Worst case it's a chain and you walk every node. Balance (AVL) is exactly what buys the O(log n) guarantee." },
+  { q:"Delete the root of a BST. What replaces it?", o:["Its largest descendant","Its predecessor (rightmost of the LEFT subtree) or successor (leftmost of the RIGHT subtree)","Whichever child is bigger","You can't delete roots"], a:1, why:"Both choices preserve smaller-left/bigger-right. Sheet 2.6 makes you try both and check whether the result is still AVL.", tag:"Sheet 2.6" },
+  { q:"Walk a BST left-subtree → node → right-subtree ('in-order'). What comes out?", o:["Random order","The values in SORTED order","Reverse sorted","Level by level"], a:1, why:"Smaller-left/bigger-right means in-order traversal visits values ascending. A handy check for 'is this a valid BST?'." },
+  { q:"A plain BST holds 7 values. Which heights are possible? (One node = height 0.)", o:["Only 2","Anything from 2 to 6","Exactly 3","1 to 7"], a:1, why:"Best: perfectly balanced, height 2 (2³−1 = 7 nodes). Worst: a chain, height 6. AVL crushes that range to just 2–3.", tag:"Sheet 2.6" },
+  { q:"Thinnest AVL tree: N(0)=1, N(1)=2, N(h)=N(h−1)+N(h−2)+1. What is N(3)?", o:["5","6","7","12"], a:2, why:"N(2) = 2+1+1 = 4, then N(3) = 4+2+1 = 7. So 7 nodes only just reach height 3 — which is why mock Q7's final tree is legal.", tag:"Sheet 2.6" },
+  { q:"Where is the smallest value in any BST?", o:["The root","The leftmost node — keep walking left until you can't","The deepest leaf","Anywhere"], a:1, why:"Left always means smaller. (Largest = keep walking right.) Cost: O(height) steps." },
+]},
+{ id:"heaps", emoji:"⛰️", title:"Heaps", unit:"Unit 2 · Data structures", blurb:"Priority queues in an array",
+  intro:[ { t:"Your phone picks '<b>most urgent thing next</b>' thousands of times a second. The queue it uses is a heap.", k:"Why it exists", e:"💡" },
+          { t:"One rule only: every parent beats its kids. So the winner always sits on top." },
+          { t:"And it's secretly just a flat list. Slot k's kids live at 2k+1 and 2k+2.", v:"heap" },
+          { t:"New item? It bubbles UP until its parent beats it. Remove the top? The last item takes its place and sinks DOWN.", f:"<div class='fx'>kids of k → <span class='fa'>2k+1</span>, <span class='fa'>2k+2</span></div><div class='flegend'><span>parent of k → <span class='fb'>(k−1)÷2</span></span><span>every heap MCQ uses these</span></div>" } ],
+  qs:[
+  { q:"The one promise a min-heap makes:", o:["The array is fully sorted","Every parent is smaller than its children","Left children are smaller than right children","The smallest element is at the end"], a:1, why:"Parent beats children — that's all. Left/right order means nothing. Consequence: the root (slot 0) is always the minimum." },
+  { q:"A heap lives in a plain array. The children of slot k are at…", o:["k+1 and k+2","2k and 2k+1","2k+1 and 2k+2","k/2 and k/2+1"], a:2, why:"Root at 0; children of k at 2k+1, 2k+2; parent of k at ⌊(k−1)/2⌋. Learn these three formulas — every heap MCQ uses them." },
+  { q:"With n elements in slots 0…n−1, the largest slot that can have a child is…", o:["n−1","n/2","⌊n/2⌋ − 1","⌊(n−1)/2⌋ + 1"], a:2, why:"Slot k has a child iff 2k+1 ≤ n−1, i.e. k ≤ n/2 − 1. Everything past that is a leaf — which is why make-heap starts sifting there.", tag:"Sheet 2.7" },
+  { q:"Removing the minimum from a heap starts by…", o:["Deleting slot 0 and shifting everything left","Moving the LAST element into slot 0, then sifting it down","Swapping slots 0 and 1","Re-sorting the array"], a:1, why:"Fill the hole with the last element (keeps the shape compact), then sift down: swap with the smaller child until both children lose." },
+  { q:"Min-heap [4, 8, 16, 15, 42, 23] — remove the minimum. Resulting array?", o:["[8, 15, 16, 23, 42]","[8, 16, 15, 23, 42]","[8, 15, 23, 16, 42]","[8, 16, 15, 42, 23]"], a:0, why:"23 goes to the root → swap with smaller child 8 → then its children are 15, 42 → swap with 15. Result [8,15,16,23,42]. Always the SMALLER child.", tag:"Mock Q8" },
+  { q:"Inserting into a heap costs…", o:["O(1)","O(log n)","O(n)","O(n log n)"], a:1, why:"Drop it in the next free slot, sift UP by swapping with the parent while it beats the parent — at most the tree's height ≈ log n swaps." },
+  { q:"Building a heap from n unordered items (make-heap) costs…", o:["Θ(n log n)","Θ(n²)","Θ(n)","Θ(log n)"], a:2, why:"Surprisingly linear! Recurrence T(n) = 2T(n/2) + log n → recursion dominates → Θ(n). A favourite examiner surprise.", tag:"Sheet 2.7" },
+  { q:"Parent of slot 8 in a heap array?", o:["Slot 4","Slot 3 — ⌊(8−1)/2⌋","Slot 7","Slot 2"], a:1, why:"Parent of k = ⌊(k−1)/2⌋ = ⌊7/2⌋ = 3. It's the inverse of the kids formula 2k+1, 2k+2 — check: kids of 3 are 7 and 8 ✓." },
+  { q:"Heapsort = make-heap, then n × delete-the-top. Total complexity?", o:["Θ(n)","Θ(n log n) — Θ(n) build + n deletes at O(log n) each","Θ(n²)","Θ(log n)"], a:1, why:"The linear build is dominated by n sift-downs of log n each. Same class as mergesort, and it sorts in place.", tag:"Sheet 2.7" },
+  { q:"In a min-heap, where can the SECOND-smallest element be?", o:["Anywhere at all","Only in the last slot","It must be one of the root's two children","Slot 3 exactly"], a:2, why:"Everything below a node is bigger than that node — so the 2nd-smallest can't sit under anything except the root itself." },
+  { q:"Is the sorted array [1, 2, 3, 4, 5] a valid min-heap?", o:["No — heaps can't be sorted","Yes — every parent is smaller than its children","Only if n is odd","Only after sifting"], a:1, why:"Check the formulas: slot k's kids at 2k+1, 2k+2 always hold bigger numbers here. Sorted ⇒ heap (the reverse is NOT true)." },
+]},
+{ id:"hash", emoji:"#️⃣", title:"Hash tables", unit:"Unit 2 · Data structures", blurb:"Instant lookup & collisions",
+  intro:[ { t:"1953: instead of SEARCHING for a thing, make its name <b>compute where it lives</b>. Every Python dict is this one trick.", k:"Why it exists", e:"💡" },
+          { t:"One division and you know exactly where to look. ('mod' = the remainder after dividing.)", f:"<div class='fx'>slot = key <span class='fa'>mod</span> 7</div><div class='flegend'><span class='fa'>mod = remainder</span><span>13 mod 7 = <span class='fb'>6</span></span></div>" },
+          { t:"Two keys want the same slot? Chain them in a mini-list — or step right until there's a gap.", v:"hashv" },
+          { t:"Stepping right has a danger: keys steal other keys' homes, and pile-ups snowball." } ],
+  qs:[
+  { q:"With h(k) = k mod 7, which slot does key 13 go to? (mod = remainder after dividing)", o:["1","3","6","13"], a:2, why:"13 = 7 + 6, so remainder 6. This is why lookup is O(1): one division tells you exactly where to look." },
+  { q:"Keys 14, 7 and 77 all hash to slot 0 (they're multiples of 7). This is called…", o:["A collision","An inversion","An overflow","A rotation"], a:0, why:"Two keys, same slot = collision. The two standard fixes are chaining and probing." },
+  { q:"'Chaining' handles collisions by…", o:["Rejecting the second key","Each slot holding a little linked list","Doubling the table","Re-hashing with mod 11"], a:1, why:"Latecomers join the list in their slot. Finding 77 behind 14 → 7 → 77 costs 3 looks." },
+  { q:"'Linear probing' handles a taken slot by…", o:["Stepping right (wrapping) until a free slot appears","Going to the mirror slot","Storing in slot 0","Giving up"], a:0, why:"Just walk right until there's space. Danger: keys steal other keys' homes, and pile-ups snowball." },
+  { q:"Insert 13, 14, 18, 7, 1, 5, 77 (mod 7) with probing. 7 wants slot 0 (taken by 14) so it sits in slot 1. What happens to key 1?", o:["It sits in slot 1 anyway","Slot 1 is stolen, so it probes on to slot 2","It replaces 7","It goes to slot 0"], a:1, why:"7 stole 1's home! 1 probes to slot 2. Then 77 probes 0→1→2→3: four looks to find later. That snowball is probing's weakness — exam questions love it.", tag:"Sheet 2.5" },
+  { q:"With a good hash function and sensible load, hash lookup is expected…", o:["O(1)","O(log n)","O(n)","O(n²)"], a:0, why:"Compute slot, look there — constant. Worst case (everything colliding) degrades to O(n), which is why the collision strategy matters." },
+  { q:"WORST case for a hash table — every key lands in one slot. Lookup costs…", o:["Still O(1)","O(log n)","O(n) — it degrades into scanning a list","O(n²)"], a:2, why:"One giant chain, walked end to end. The O(1) promise depends on keys spreading out — hash function and table size are what protect it." },
+  { q:"Sheet 2.5's chaining table: slot 0 holds the chain 14 → 7 → 77. Finding 77 inspects…", o:["1 key","2 keys","3 keys","7 keys"], a:2, why:"Walk the chain: 14, then 7, then 77. Chain position = cost. (Probing needed 4 looks for the same key — which wins is data-dependent.)", tag:"Sheet 2.5" },
+  { q:"Why do PRIME table sizes (like 4013) often beat round ones (like 4000)?", o:["Primes are lucky","Real keys share factors with round sizes, so they cluster; a prime shares factors with almost nothing and spreads remainders evenly","Primes make division faster","They don't"], a:1, why:"Sheet 2.5's Weaver-words experiment tests exactly this — including why sizes that are multiples of 31 misbehave with Java's hashCode.", tag:"Sheet 2.5" },
+]},
+{ id:"dijkstra", emoji:"🗺️", title:"Dijkstra", unit:"Unit 3 · Graphs & DP", blurb:"Shortest paths, step by step",
+  intro:[ { t:"1956: invented in <b>20 minutes at a café — no pen, no paper</b>. Today it's Google Maps.", k:"Why it exists", e:"💡" },
+          { t:"The question: from home, what's the shortest route to EVERY other place? Keep a notebook of 'best distance found so far'." },
+          { t:"Grow a 'done' bubble: always lock in the NEAREST place you haven't finished — that number is final, forever.", v:"dij" },
+          { t:"Then ask: is going THROUGH the new place a shortcut to its neighbours? Update the notebook, repeat.", f:"<div class='fx'>new = <span class='fa'>min</span>(old, there <span class='fb'>+</span> edge)</div><div class='flegend'><span>the 'relax' step</span><span class='fa'>keep whichever is shorter</span></div>" } ],
+  qs:[
+  { q:"Dijkstra's algorithm answers:", o:["Shortest routes from ONE start node to all others","Shortest routes between ALL pairs","Whether a graph has a cycle","The minimum spanning tree"], a:0, why:"Single source → everywhere. (All pairs at once is Floyd–Warshall.)" },
+  { q:"Each round, Dijkstra 'settles'…", o:["The most recently updated node","The unsettled node with the SMALLEST distance estimate","A random neighbour","The node with fewest edges"], a:1, why:"Settle the closest unfinished node — its number is now final. Then update its neighbours. That's the whole loop." },
+  { q:"Why can the closest unsettled node u be safely finalised?", o:["Because we process nodes alphabetically","Any other route to u passes through something already further away — and edges only ADD distance","Because u has the fewest neighbours","It can't — Dijkstra sometimes revisits"], a:1, why:"That's the invariant (sheet 2.8 Q2). It's also why Dijkstra REQUIRES non-negative weights — a negative edge could sneak in later and break the promise." },
+  { q:"After settling node u at distance 5, you find u's neighbour v via an edge of length 6, and v currently shows 14. You…", o:["Leave v at 14","Update v to 11, since 5 + 6 beats 14","Update v to 6","Settle v immediately"], a:1, why:"'Relaxing': new candidate = settled distance + edge. 11 < 14 → write it in. v stays unsettled — something even better might appear." },
+  { q:"Dijkstra from s (edges: x–s 10, s–y 1, s–v 2, y–w 4, …): what is x's estimate JUST BEFORE v is settled?", o:["9","10","11","∞"], a:1, why:"Settle s (y←1, v←2, w←9, x←10), settle y (w←5). Pause BEFORE v settles: x has only the direct s–x edge = 10. The trap, 9 = 2+7 via v, only appears AFTER v settles. Read 'just before' like a lawyer.", tag:"Mock Q1 · 4 marks" },
+  { q:"Nodes end up settled in…", o:["Insertion order","Increasing order of their final distance","Decreasing order","Random order"], a:1, why:"Direct consequence of always settling the closest remaining node. Handy exam check: if your trace settles 14 before 11, you slipped." },
+  { q:"If every edge has weight 1, Dijkstra behaves exactly like…", o:["Depth-first search","Breadth-first search","Insertion sort","Floyd–Warshall"], a:1, why:"The priority queue only ever holds distances d and d+1 — a plain FIFO queue. BFS is Dijkstra for unit weights.", tag:"Sheet 2.8" },
+  { q:"With a binary-heap priority queue, Dijkstra costs…", o:["O(V³)","O(E + V log V)","O(V)","O(2^V)"], a:1, why:"Each node extracted once (V log V), each edge relaxed once (E updates). You'll reuse this in the bandwidth question." },
+  { q:"Sheet 2.8's trace from a gives e a final distance of 14. Which route?", o:["a→d→e = 5+15","a→b→e = 7+7","a→d→f→e = 5+6+8","a→b→d→e"], a:1, why:"14 beats d→e's 20 and f→e's 19. Exam tip: write WHICH route gave each number — it's free partial marks if you slip elsewhere.", tag:"Sheet 2.8" },
+  { q:"Same trace (distances a:0, d:5, b:7, f:11 …). The first four nodes to settle are…", o:["a, b, c, d","a, d, b, f — increasing distance order","a, b, d, e","Alphabetical order"], a:1, why:"Settling order = increasing final distance, always. If your trace settles 14 before 11, you've made a slip — use this as a self-check.", tag:"Sheet 2.8" },
+  { q:"Add one NEGATIVE-weight edge to the graph. Dijkstra…", o:["Still works fine","May give wrong answers — the 'closest is final' promise breaks","Runs slower but stays correct","Refuses to run"], a:1, why:"A negative edge discovered later could undercut an already-settled node. Non-negative weights are the algorithm's one big precondition — a favourite MCQ." },
+  { q:"Why use a heap for the queue instead of scanning all nodes for the minimum each round?", o:["It looks professional","Extract-min drops from O(V) to O(log V) per round — O(E + V log V) overall instead of O(V²)","It saves memory","No real reason"], a:1, why:"The heap IS the reason for the good complexity — and mock Q10e explicitly awards marks for naming this data structure and its costs." },
+]},
+{ id:"bandwidth", emoji:"🌉", title:"Floyd–Warshall & bandwidth ⭐", unit:"Unit 3 · Graphs & DP", blurb:"The mock's 20-mark question",
+  intro:[ { t:"Video calls don't want the SHORTEST route — they want the route with the <b>strongest weak link</b>. Real network engineering… and your exam's 20-mark question.", k:"Why it exists", e:"💡" },
+          { t:"Floyd–Warshall fills one big table of best routes between ALL pairs, by allowing 'layovers' through one node at a time." },
+          { t:"For bandwidth: a chain of pipes carries only what its skinniest pipe allows.", v:"pipes" },
+          { t:"Same algorithm, two words swapped. That's the 6-mark adaptation.", f:"<div class='fx'>short: min(d, d₁ <span class='fd'>+</span> d₂)<br>wide: max(b, <span class='fa'>min</span>(b₁, b₂))</div><div class='flegend'><span class='fd'>+ becomes min</span><span class='fa'>min becomes max</span></div>" },
+          { t:"Huge sparse network? The table way costs Θ(V³) = days. Run Dijkstra from every node instead = minutes." } ],
+  qs:[
+  { q:"Floyd–Warshall computes…", o:["Shortest paths from one source","Shortest paths between EVERY pair of nodes","Maximum flow","A spanning tree"], a:1, why:"One big table of best distances for all pairs. Think airline layovers: allow routing through airports one at a time." },
+  { q:"Floyd–Warshall's update rule is d[i][j] ← …", o:["min(d[i][j], d[i][k] + d[k][j])","d[i][k] + d[k][j]","max(d[i][j], d[i][k])","min(d[i][k], d[k][j])"], a:0, why:"“Is going through k cheaper than what I have?” Three nested loops over k, i, j make every layover available." },
+  { q:"Floyd–Warshall's complexity on V nodes is…", o:["Θ(V log V)","Θ(V²)","Θ(V³)","Θ(2^V)"], a:2, why:"Three nested loops over all V nodes. Cubic — fine for hundreds of nodes, fatal for 10⁵." },
+  { q:"A chain of connections with bandwidths 100, 56, 1000 has overall bandwidth…", o:["1156","1000","100","56"], a:3, why:"A chain is as good as its weakest link: the MINIMUM along the route. And you want the route whose weakest link is strongest — 'widest path'.", tag:"Mock Q10" },
+  { q:"To adapt Floyd–Warshall from shortest-path to best-bandwidth, the update becomes b[i][j] ← …", o:["min(b[i][j], b[i][k] + b[k][j])","max(b[i][j], min(b[i][k], b[k][j]))","min(b[i][j], max(b[i][k], b[k][j]))","b[i][k] · b[k][j]"], a:1, why:"min combines a route (weakest link), max picks the better route. Two-operator swap, same loops, same Θ(V³). This exact adaptation is worth 6 marks on the mock.", tag:"Mock Q10b" },
+  { q:"10⁵ devices, 10⁹ operations/second, a Θ(V³) algorithm daily. Feasible?", o:["Yes — about 17 minutes","Yes — about 3 hours","No — about 10⁶ seconds ≈ 11.6 days","No — about 300 years"], a:2, why:"(10⁵)³ = 10¹⁵ ops ÷ 10⁹ = 10⁶ seconds. A day is ~10⁵ seconds. Two powers-of-ten divisions = 2 marks.", tag:"Mock Q10d" },
+  { q:"Each device has ~3 connections (so E ≈ 1.5V). The fast alternative for all-pairs bandwidth is…", o:["Floyd–Warshall but optimised","Widest-path Dijkstra (max-heap, min at each relax) run from EVERY node: O(V² log V)","Brute force over all routes","Sorting the edges"], a:1, why:"Sparse graph → each Dijkstra run is O(V log V); V runs → V² log V ≈ 2×10¹¹ ops → minutes. Name the data structures: adjacency list + binary heap.", tag:"Mock Q10e · 6 marks" },
+  { q:"Sheet 2.9's twist: one single structure containing a best-bandwidth route between EVERY pair is…", o:["A shortest-path tree","A hash table","A MAXIMUM spanning tree (Kruskal, biggest edges first)","A sorted array"], a:2, why:"Run Kruskal taking edges in DECREASING bandwidth order, skip edges that close a cycle. The resulting tree's unique path between any pair is a widest path.", tag:"Sheet 2.9 Q5" },
+  { q:"How is the Floyd–Warshall table initialised, before any layovers are allowed?", o:["All zeros","Direct edge weights; ∞ where there's no edge; 0 from each node to itself","All ∞","Randomly"], a:1, why:"Start from the 'no layovers' truth, then let each k improve it. (Bandwidth flavour: direct bandwidths, 0 for no link, ∞ to yourself.)" },
+  { q:"Smaller network: 10⁴ devices, so V³ = 10¹². At 10⁹ ops/sec, daily Floyd–Warshall is…", o:["Hopeless — a year","Fine — about 1000 seconds ≈ 17 minutes","Hopeless — 11 days","Instant"], a:1, why:"10¹² ÷ 10⁹ = 10³ seconds. Feasibility FLIPS with scale — always do the powers-of-ten division rather than guessing.", tag:"Exam skill" },
+  { q:"Kruskal for the maximum spanning tree: sort edges by decreasing bandwidth, add unless a cycle forms. Complexity?", o:["Θ(V³)","O(E log E) — the sort dominates","O(V)","O(2^E)"], a:1, why:"Sort all edges, then near-constant union–find work per edge. On the sparse network that's about V log V — even cheaper than Dijkstra-from-everywhere.", tag:"Sheet 2.9 Q5" },
+  { q:"Why does ONE maximum spanning tree contain a widest path between EVERY pair?", o:["Trees are always optimal","For any cut of the network, the tree kept the strongest edge crossing it — so no detour can offer a better bottleneck","It doesn't — you need V different trees","Because trees have no cycles"], a:1, why:"Kruskal met each cut's strongest edge first and only rejects cycle-closers. One tree answers all queries — the elegant end of sheet 2.9.", tag:"Sheet 2.9 Q5" },
+]},
+{ id:"dp", emoji:"🐇", title:"Fibonacci & DP ⭐", unit:"Unit 3 · Graphs & DP", blurb:"The other 20-mark question",
+  intro:[ { t:"Named '<b>dynamic programming</b>' to hide maths from a boss who hated the word 'research'. It just means: write answers down so you never solve the same thing twice.", k:"Why it exists", e:"💡" },
+          { t:"The lazy way asks the same question again and again and again. The table answers it once.", v:"dpv" },
+          { t:"Here is ALL of dynamic programming — fill the list left to right:", code:"fib = [1, 1]\nfor i in 2..n:\n  fib[i] = fib[i-1] + fib[i-2]" },
+          { t:"Result: fib(12) takes 11 additions instead of 232. Exponential → linear, just by writing things down." } ],
+  qs:[
+  { q:"fib: 1, 1, 2, 3, 5, 8, 13, … what's next?", o:["18","20","21","26"], a:2, why:"Each number is the sum of the previous two: 8 + 13 = 21." },
+  { q:"Why is the naive recursive fib(n) horribly slow?", o:["Recursion itself is slow in Java","It recomputes the same sub-values exponentially many times","It uses too much memory","Addition is expensive"], a:1, why:"fib(n−2) is computed twice, fib(n−3) three times… the duplication snowballs into an exponential call tree." },
+  { q:"Dynamic programming fixes it by…", o:["Using a faster formula","Filling a table bottom-up so each value is computed exactly ONCE","Using two recursions instead of one","Guessing and checking"], a:1, why:"Write fib(0), fib(1), then each entry = sum of previous two. Store, don't recompute — that one sentence is dynamic programming." },
+  { q:"How many additions does the DP table use to reach fib(12)?", o:["11","12","144","232"], a:0, why:"One addition per entry fib(2)…fib(12) → 11. In general n−1 → O(n). The naive recursion needs 232 — that contrast is the point.", tag:"Mock Q9d" },
+  { q:"How many additions does NAIVE recursion need for fib(12)?", o:["66","144","232","4096"], a:2, why:"A(n) = A(n−1) + A(n−2) + 1 tabulates to A(12) = 232 (neat pattern: A(n) = fib(n) − 1).", tag:"Mock Q9a" },
+  { q:"To prove T(n) ≤ 2ⁿ for T(n) = T(n−1) + T(n−2) + 1, the induction step is…", o:["2ⁿ⁻¹ + 2ⁿ⁻² + 1 ≤ 2ⁿ⁻¹ + 2ⁿ⁻¹ = 2ⁿ ✓","2ⁿ⁻¹ × 2ⁿ⁻² = 2ⁿ ✓","2ⁿ + 2ⁿ = 2ⁿ⁺¹ ✓","It needs the Master Theorem"], a:0, why:"Assume the bound for smaller n, substitute, massage: the two smaller powers sum to at most 2ⁿ. Template: guess → substitute → algebra.", tag:"Mock Q9b" },
+  { q:"The naive recursion's cost T(n) is squeezed between…", o:["n² and n³","(3/2)ⁿ and 2ⁿ","log n and n","n and n log n"], a:1, why:"O(2ⁿ) from the last question; Ω((3/2)ⁿ) via the same trick using 3/2 + 1 = 5/2 ≥ (3/2)². Exponential either way — recursion without storing = doom.", tag:"Mock Q9e" },
+  { q:"Why doesn't the Master Theorem apply to T(n) = T(n−1) + T(n−2) + 1?", o:["Too many terms","The size shrinks by SUBTRACTION, not division","T(0) isn't defined","It does apply"], a:1, why:"Master needs T(n/b)-shaped calls. Subtractive recurrences get induction instead — which is exactly what mock Q9 makes you do." },
+  { q:"Naive-recursion additions A(n) = A(n−1) + A(n−2) + 1 follow a pretty pattern:", o:["A(n) = 2ⁿ","A(n) = fib(n) − 1","A(n) = n²","A(n) = n!"], a:1, why:"Check it: A(3) = 2 = 3−1 ✓, A(6) = 12 = 13−1 ✓, A(12) = 232 = 233−1 ✓. Lets you answer 'how many additions?' instantly.", tag:"Mock Q9a" },
+  { q:"Memoisation (caching results inside the recursion) vs the bottom-up table:", o:["Only the table counts as dynamic programming","Both are DP — each subproblem still gets computed exactly once","Memoisation stays exponential","They give different answers"], a:1, why:"Same principle, opposite direction: top-down remembers as it goes, bottom-up pre-fills. Both turn fib exponential → linear." },
+  { q:"The proof template used for BOTH bounds in mock Q9:", o:["Guess the bound → assume it for smaller n → substitute into the recurrence → algebra out the same bound","Try n = 1, 2, 3 and stop","Apply the Master Theorem","Draw the whole call tree"], a:0, why:"O(2ⁿ): 2ⁿ⁻¹ + 2ⁿ⁻² + 1 ≤ 2ⁿ. Ω((3/2)ⁿ): (3/2)ⁿ⁻¹ + (3/2)ⁿ⁻² = (5/2)·(3/2)ⁿ⁻² ≥ (3/2)ⁿ. Same machine, two directions — 10 marks on the mock.", tag:"Mock Q9" },
+  { q:"What does T(n) = Ω((3/2)ⁿ) actually claim?", o:["T is at most (3/2)ⁿ","T is AT LEAST (3/2)ⁿ (times a constant, eventually) — a lower bound","T equals (3/2)ⁿ exactly","Nothing useful"], a:1, why:"Ω is the ≥ twin of O. Together with O(2ⁿ) it traps naive fib between two exponentials — slow no matter what." },
+]},
+{ id:"machines", emoji:"🤖", title:"Machines & languages", unit:"Unit 4 · Semester 1", blurb:"DFAs, grammars, and the power ladder",
+  intro:[ { t:"1936: Turing designs the computer <b>on paper, before computers existed</b>, to answer one question: what can never be computed?", k:"Why it exists", e:"💡" },
+          { t:"A 'language' here just means a set of strings — like 'all words ending in ab'. The game: which machine can spot which sets?" },
+          { t:"Three machines. Each one = the last one plus a better memory. The stack is what unlocks counting.", v:"ladder" },
+          { t:"Names to remember: DFA spots 'regular' sets, PDA spots 'context-free' sets, Turing machine spots everything computable." } ],
+  qs:[
+  { q:"In this course, a 'language' is…", o:["A programming language","Just a SET of strings","A grammar","A compiler"], a:1, why:"E.g. “all strings ending in ab”, or “aⁿbⁿ”. Every Semester-1 question is really: can machine X recognise set L?" },
+  { q:"A DFA is basically…", o:["A flowchart with finitely many states and no other memory","A computer with unlimited memory","A stack machine","A random process"], a:0, why:"Read one letter, follow the arrow. Its ONLY memory is which circle it's standing in — that limitation is what the pumping lemma exploits." },
+  { q:"NFAs (which may 'try options in parallel') recognise…", o:["Strictly more than DFAs","Exactly the same languages as DFAs","Strictly less","Only finite languages"], a:1, why:"Surprising but true: subset construction converts any NFA to a DFA (possibly exponentially bigger). Both = the regular languages." },
+  { q:"A PDA is a DFA plus…", o:["A second tape","A stack (push/pop pile)","A dictionary","Unlimited states"], a:1, why:"The stack is what lets it match counts: push per a, pop per b → aⁿbⁿ. PDAs = context-free languages." },
+  { q:"{aⁿbⁿ : equal a's then b's} is…", o:["Regular","Context-free but not regular","Not context-free","Finite"], a:1, why:"A DFA can't count unboundedly (no memory), but a PDA's stack does it easily. The classic language separating the two levels." },
+  { q:"The grammar rule X → aXb (with X → ε) generates…", o:["Any mix of a's and b's","aⁿbⁿ — matched counts","Alternating abab…","Only ab"], a:1, why:"Each use wraps one a and one b around the outside — counts stay matched automatically. THE tool for building CFGs with matching.", tag:"Sheet 5" },
+  { q:"Which closure claim is FALSE?", o:["Regular languages are closed under complement","Regular languages are closed under union","Context-free languages are closed under intersection","Context-free languages are closed under reversal"], a:2, why:"CFLs fail intersection: {aⁿbⁿcᵐ} ∩ {aᵐbⁿcⁿ} = {aⁿbⁿcⁿ}, not context-free. Memorise both closure lists — cheap exam marks.", tag:"Lecturer tip" },
+  { q:"A question says 'ARGUE why L₁ ∪ L₂ is regular' (both regular). Full marks =", o:["A full product-automaton construction","One sentence citing the closure property shown in class","A pumping lemma proof","A truth table"], a:1, why:"“Regular languages are closed under union (shown in class), so L₁ ∪ L₂ is regular.” The lecturer explicitly said citing class results is fine — only 'prove' demands the construction." },
+  { q:"Converting an NFA to a DFA (the 'subset construction') can blow up to…", o:["n states","n² states","2ⁿ states — one per SET of NFA states","No conversion exists"], a:2, why:"The DFA tracks 'every state the NFA could currently be in' — a subset. Same power, possibly exponential size. A favourite MCQ fact.", tag:"Sheet 2" },
+  { q:"How do you get a machine for the COMPLEMENT of L (everything NOT in L)?", o:["Reverse all the arrows","Take L's (complete) DFA and flip accepting ↔ non-accepting states","Add a stack","It's impossible"], a:1, why:"Same walk, opposite verdict. That's the one-line reason regular languages are closed under complement — citable in 'argue why' answers.", tag:"Sheet 1" },
+  { q:"A FINITE set of strings, say exactly {ab, ba}, is…", o:["Regular — write the words as a regex: ab|ba","Context-free but not regular","Not recognisable","Needs a Turing machine"], a:0, why:"Any finite list is a regex of alternatives. It's only INFINITE patterns where the machine hierarchy starts to bite." },
+  { q:"Regular expressions and finite automata recognise…", o:["Different sets of languages","Exactly the same class — convertible both ways","Regexes strictly more","DFAs strictly more"], a:1, why:"regex → NFA (build with ε-links) → DFA (subsets), and DFA → regex (state elimination, sheet 4). Fully interchangeable — cite it freely." },
+  { q:"Sheet 8 says a language is 'in P' if…", o:["It's regular","Some Turing machine DECIDES it in polynomial time (n, n², n³…)","It has a PDA","It's finite"], a:1, why:"P = decidable in polynomially many steps. Sheet 8's pattern: describe the TM, count its passes, conclude 'therefore the language is in P'.", tag:"Sheet 8" },
+]},
+{ id:"pumping", emoji:"🎈", title:"Pumping lemma", unit:"Unit 4 · Semester 1", blurb:"Proving languages too hard for a machine",
+  intro:[ { t:"The most famous Stack Overflow answer ever: <b>you can't parse HTML with regex</b>. This lemma is the proof — maths for showing a tool can NEVER do a job.", k:"Why it exists", e:"💡" },
+          { t:"A small machine reading a long word must go round a LOOP — and lapping the loop again must be fine too. Unless that breaks the pattern… gotcha.", v:"pump" },
+          { t:"Your job in a proof: pick a word so that EVERY possible loop placement breaks it. You pick the word; your enemy picks the loop." } ],
+  qs:[
+  { q:"Why must a DFA with 50 states, reading a 60-letter word, repeat a state?", o:["Because words are random","Pigeonhole: more steps than states forces a revisit — the path contains a loop","Because DFAs are slow","It needn't"], a:1, why:"That loop is the 'y' you pump: going round it more (or zero) times can't change the machine's verdict. The whole lemma is this one observation." },
+  { q:"Regular pumping lemma: long words split as w = xyz where…", o:["|xy| ≤ n, y non-empty, and x yⁱ z stays in L for ALL i ≥ 0","x is empty and z is empty","y is the whole word","|z| ≤ n and z repeats"], a:0, why:"The loop y sits within the first n letters and can be repeated or skipped freely. 'For all i' includes i = 0 — pumping DOWN is allowed." },
+  { q:"In a pumping-lemma proof, who chooses what?", o:["You choose the word AND the split","You choose the word; the split is your adversary's — you must beat EVERY legal split","The adversary chooses the word","Nobody chooses anything"], a:1, why:"Choose your word cleverly (to force y somewhere useful), then show every allowed split breaks. Beating one split proves nothing." },
+  { q:"Proving aⁿbⁿ not regular with w = aⁿbⁿ: why is y guaranteed to be all a's?", o:["Because y is always first","|xy| ≤ n traps x and y inside the first n letters — the a-block","Because b's can't be pumped","It isn't guaranteed"], a:1, why:"That's why we chose THIS word: the constraint pins y in the a's. Pump once: more a's than b's → not in L → contradiction.", tag:"The template" },
+  { q:"The CONTEXT-FREE pumping lemma splits w = uvxyz and pumps…", o:["Only v","Only y","v and y together (u vⁱ x yⁱ z), with |vxy| ≤ n","The whole word"], a:2, why:"A repeated grammar symbol in a tall parse tree splices in TWO synchronized chunks, one each side. Five parts, pump the 2nd and 4th." },
+  { q:"Proving aⁿbⁿcⁿ not context-free with w = aⁿbⁿcⁿ: the key observation about the window vxy is…", o:["It's always at the start","Being ≤ n letters long, it touches at most TWO of the three letter blocks","It contains no a's","It equals the whole word"], a:1, why:"So pumping grows at most two letter types — the third is left behind, counts break, contradiction. The lecturer worked exactly this and called it the expected exam level.", tag:"Lecturer benchmark" },
+  { q:"For L = {ww : w any string} (two copies), a good word to pump is…", o:["aⁿ","abab","aⁿbⁿaⁿbⁿ","aⁿbⁿcⁿ"], a:2, why:"The short window can only disturb one region, unbalancing the two copies. Choosing the right word is 80% of every pumping proof.", tag:"Sheet 6" },
+  { q:"Pumping DOWN (i = 0) means…", o:["Deleting the v and y chunks — useful when you need counts to SHRINK","Reversing the word","Removing one letter","Nothing — i starts at 1"], a:0, why:"For {aⁱbʲcᵏ : i ≤ j ≤ k}, pumping up can't break 'k biggest' if the window sits in the c's — pump DOWN instead to drag j or k below i. Keep both directions in your toolbox." },
+  { q:"In the pumping game, the pumping length n is…", o:["Chosen by you","Unknown — your proof must work whatever n turns out to be","Always 5","The length of your word"], a:1, why:"You only know n EXISTS. That's why proofs pick words WRITTEN IN TERMS OF n, like aⁿbⁿ — one choice beats every possible n at once." },
+  { q:"Prove {bᵏab³ᵏ} not regular: which word, and where is y forced?", o:["w = bab³; y is the a","w = bⁿab³ⁿ; |xy| ≤ n traps y inside the FIRST b-block","w = aⁿ; y anywhere","No proof exists"], a:1, why:"Pump y (some front b's): the front block grows but the back 3k doesn't follow → out of the language. Choosing a word that FORCES y somewhere useful is the whole skill.", tag:"Sheet 4" },
+  { q:"{a^(k²)} — word lengths 1, 4, 9, 16… — is not regular because…", o:["Pumping adds at most n letters, but gaps between squares eventually exceed n — the pumped word lands BETWEEN squares","You can't write squares as words","It's context-free instead","Pumping changes the letters"], a:0, why:"n² + |y| ≤ n² + n < (n+1)². The loop is too small to jump the gap. The same 'gaps outgrow the loop' trick kills {a^p : p prime}.", tag:"Sheet 4" },
+  { q:"For {aⁱbʲcᵏ : i ≤ j ≤ k}, the adversary puts the whole window inside the c-block. Your move?", o:["Pump UP — more c's","Pump DOWN (i = 0) — deleting c's drags k below j","Concede the case","Move the window"], a:1, why:"Extra c's keep i ≤ j ≤ k perfectly happy — pumping up proves nothing here. Deleting breaks it. Ask per case: up or down?", tag:"Sheet 6" },
+  { q:"Sneaky alternative to pumping: L ∩ a*b* = {aⁿbⁿ}. If L were regular…", o:["Nothing follows","Then aⁿbⁿ would be regular too (closure under intersection with a regular language) — contradiction, so L isn't regular","L must be context-free","The intersection is empty"], a:1, why:"Closure properties as a weapon: intersect with something regular to distil a KNOWN non-regular core. Often faster than pumping — and citable.", tag:"Exam trick" },
+]},
+];
+LEVELS.forEach(L => L.qs.forEach((q, i) => { q.id = L.id + ":" + i; q.lvlId = L.id; }));
+const LVL_BY_ID = {}; LEVELS.forEach((L, i) => LVL_BY_ID[L.id] = { L, i });
+
+/* ============ VISUAL AIDS (inline SVG, theme-aware via CSS tokens) ============ */
+const VIS = (() => {
+  let dots = "";
+  for (let r = 0; r < 6; r++) for (let c = 0; c < 6; c++)
+    dots += `<circle cx="${92 + c * 24}" cy="${28 + r * 22}" r="6.5" fill="${c <= r ? "var(--accent)" : "var(--line)"}"/>`;
+  const scale = (tilt, lb, rb, tag, name, formula, color) => `
+    <g transform="translate(0,0)">
+      <path d="M-9 34 L9 34 L0 12 Z" fill="var(--muted)"/>
+      <g transform="rotate(${tilt})">
+        <line x1="-36" y1="4" x2="36" y2="4" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="-36" cy="14" r="11" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="-36" y="19" text-anchor="middle" font-size="11">${lb}</text>
+        <circle cx="36" cy="14" r="11" fill="var(--gold-soft)" stroke="var(--gold)" stroke-width="2"/>
+        <text x="36" y="19" text-anchor="middle" font-size="11">${rb}</text>
+      </g>
+      ${tag ? `<rect x="-26" y="-26" width="52" height="17" rx="6" fill="var(--gold)"/><text x="0" y="-14" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">${tag}</text>` : ""}
+      <text x="0" y="58" text-anchor="middle" font-size="11.5" font-weight="800" fill="${color}">${name}</text>
+      <text x="0" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="var(--muted)">${formula}</text>
+    </g>`;
+  return {
+  race: `<svg viewBox="0 0 320 175" role="img" aria-label="n squared curve racing far above n">
+    <path d="M35 15 L35 145 L302 145" fill="none" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="35" y1="145" x2="286" y2="112" stroke="var(--muted)" stroke-width="4" stroke-linecap="round"/>
+    <text x="293" y="117" font-size="15" font-weight="800" fill="var(--muted)">n</text>
+    <path d="M35 145 C 150 138, 232 100, 274 25" fill="none" stroke="var(--bad)" stroke-width="5" stroke-linecap="round"/>
+    <text x="282" y="29" font-size="15" font-weight="800" fill="var(--bad)">n²</text>
+    <line x1="274" y1="32" x2="274" y2="108" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 4"/>
+    <text x="207" y="78" font-size="12" font-weight="700" fill="var(--muted)">the gap →</text>
+    <text x="168" y="168" font-size="12" font-weight="700" fill="var(--muted)" text-anchor="middle">n gets big →</text>
+  </svg>`,
+  tri: `<svg viewBox="0 0 320 175" role="img" aria-label="Dot grid with lower triangle filled, about half the square">
+    ${dots}
+    <text x="258" y="34" font-size="13" font-weight="800" fill="var(--ink)">n × n</text>
+    <text x="258" y="52" font-size="11" font-weight="700" fill="var(--muted)">all runs</text>
+    <text x="106" y="152" font-size="12" font-weight="800" fill="var(--accent)">filled ≈ half</text>
+    <rect x="216" y="138" width="86" height="22" rx="7" fill="var(--accent-soft)"/>
+    <text x="259" y="153" text-anchor="middle" font-size="11.5" font-weight="800" fill="var(--accent)">still Θ(n²)</text>
+  </svg>`,
+  mt1: `<svg viewBox="0 0 320 175" role="img" aria-label="A job of size n splitting into a copies of size n over b, each paying its own work">
+    <rect x="112" y="8" width="86" height="27" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/>
+    <text x="155" y="27" text-anchor="middle" font-size="14" font-weight="800" fill="var(--ink)">n</text>
+    <circle cx="212" cy="21" r="9" fill="var(--gold)"/>
+    <text x="227" y="26" font-size="12" font-weight="800" fill="var(--gold)">pays nᶜ</text>
+    <line x1="130" y1="37" x2="72" y2="60" stroke="var(--line)" stroke-width="2.5"/>
+    <line x1="155" y1="37" x2="155" y2="60" stroke="var(--line)" stroke-width="2.5"/>
+    <line x1="180" y1="37" x2="238" y2="60" stroke="var(--line)" stroke-width="2.5"/>
+    <rect x="40" y="62" width="64" height="24" rx="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+    <rect x="123" y="62" width="64" height="24" rx="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+    <rect x="206" y="62" width="64" height="24" rx="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+    <text x="72" y="79" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)">n/b</text>
+    <text x="155" y="79" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)">n/b</text>
+    <text x="238" y="79" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)">n/b</text>
+    <circle cx="98" cy="68" r="5" fill="var(--gold)"/><circle cx="181" cy="68" r="5" fill="var(--gold)"/><circle cx="264" cy="68" r="5" fill="var(--gold)"/>
+    <text x="12" y="80" font-size="11" font-weight="800" fill="var(--muted)">×a</text>
+    <line x1="60" y1="88" x2="42" y2="108" stroke="var(--line)" stroke-width="2"/>
+    <line x1="84" y1="88" x2="94" y2="108" stroke="var(--line)" stroke-width="2"/>
+    <line x1="143" y1="88" x2="133" y2="108" stroke="var(--line)" stroke-width="2"/>
+    <line x1="167" y1="88" x2="177" y2="108" stroke="var(--line)" stroke-width="2"/>
+    <line x1="226" y1="88" x2="216" y2="108" stroke="var(--line)" stroke-width="2"/>
+    <line x1="250" y1="88" x2="260" y2="108" stroke="var(--line)" stroke-width="2"/>
+    ${[30, 82, 121, 165, 204, 248].map(x => `<rect x="${x}" y="110" width="26" height="15" rx="5" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>`).join("")}
+    <text x="155" y="152" text-anchor="middle" font-size="13" font-weight="800" fill="var(--muted)">⋯ and so on, down to size 1 ⋯</text>
+  </svg>`,
+  mt2: `<svg viewBox="0 0 320 175" role="img" aria-label="Triangle of calls with the top work fighting the swarm of leaves at the bottom">
+    <path d="M160 16 L34 146 L286 146 Z" fill="var(--code-bg)" stroke="var(--line)" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="160" cy="20" r="11" fill="var(--gold)"/>
+    <text x="182" y="24" font-size="12.5" font-weight="800" fill="var(--gold)">top: nᶜ work</text>
+    <text x="160" y="95" text-anchor="middle" font-size="22" font-weight="900" fill="var(--muted)">VS</text>
+    <rect x="34" y="141" width="252" height="9" rx="4.5" fill="var(--accent)"/>
+    <text x="160" y="168" text-anchor="middle" font-size="12.5" font-weight="800" fill="var(--accent)">bottom: army of leaves ≈ n^(log_b a)</text>
+  </svg>`,
+  mt3: `<svg viewBox="0 0 320 185" role="img" aria-label="Three balance scales: tree side heavier, tied, work side heavier">
+    <g transform="translate(58,46)">${scale(-13, "🌳", "nᶜ", "", "tree wins", "Θ(n^log_b a)", "var(--accent)")}</g>
+    <g transform="translate(160,46)">${scale(0, "🌳", "nᶜ", "× log n", "tie", "Θ(nᶜ · log n)", "var(--gold)")}</g>
+    <g transform="translate(262,46)">${scale(13, "🌳", "nᶜ", "", "work wins", "Θ(nᶜ)", "var(--bad)")}</g>
+    <text x="160" y="140" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)">compare  c  with  log_b a</text>
+  </svg>`,
+  swap: `<svg viewBox="0 0 320 175" role="img" aria-label="A neighbour swap fixes one inversion, a long Shell swap fixes three">
+    ${[0, 1, 2, 3].map(i => `<rect x="${67 + i * 50}" y="66" width="42" height="42" rx="9" fill="var(--surface)" stroke="var(--line)" stroke-width="2.5"/>`).join("")}
+    <text x="88" y="93" text-anchor="middle" font-size="16" font-weight="800" fill="var(--bad)">5</text>
+    <text x="138" y="93" text-anchor="middle" font-size="16" font-weight="800" fill="var(--ink)">1</text>
+    <text x="188" y="93" text-anchor="middle" font-size="16" font-weight="800" fill="var(--ink)">2</text>
+    <text x="238" y="93" text-anchor="middle" font-size="16" font-weight="800" fill="var(--ink)">3</text>
+    <path d="M88 58 Q 113 32 138 58" fill="none" stroke="var(--low)" stroke-width="3.5" stroke-linecap="round"/>
+    <text x="113" y="24" text-anchor="middle" font-size="11.5" font-weight="800" fill="var(--low)">neighbour swap → fixes 1</text>
+    <path d="M88 116 Q 163 162 238 116" fill="none" stroke="var(--good)" stroke-width="3.5" stroke-linecap="round"/>
+    <text x="163" y="170" text-anchor="middle" font-size="11.5" font-weight="800" fill="var(--good)">Shell swap → fixes 3 at once</text>
+  </svg>`,
+  rot: `<svg viewBox="0 0 320 175" role="img" aria-label="A leaning 1 2 3 chain rotating so the middle value 2 becomes the parent">
+    <line x1="60" y1="46" x2="93" y2="82" stroke="var(--bad)" stroke-width="2.5"/>
+    <line x1="95" y1="86" x2="128" y2="122" stroke="var(--bad)" stroke-width="2.5"/>
+    <circle cx="55" cy="38" r="15" fill="var(--surface)" stroke="var(--bad)" stroke-width="2.5"/>
+    <circle cx="90" cy="78" r="15" fill="var(--surface)" stroke="var(--bad)" stroke-width="2.5"/>
+    <circle cx="125" cy="118" r="15" fill="var(--surface)" stroke="var(--bad)" stroke-width="2.5"/>
+    <text x="55" y="43" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">1</text>
+    <text x="90" y="83" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">2</text>
+    <text x="125" y="123" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">3</text>
+    <text x="88" y="158" text-anchor="middle" font-size="11.5" font-weight="800" fill="var(--bad)">leaning — illegal!</text>
+    <text x="163" y="90" text-anchor="middle" font-size="24" font-weight="900" fill="var(--muted)">➜</text>
+    <line x1="238" y1="52" x2="212" y2="86" stroke="var(--good)" stroke-width="2.5"/>
+    <line x1="252" y1="52" x2="278" y2="86" stroke="var(--good)" stroke-width="2.5"/>
+    <circle cx="245" cy="45" r="15" fill="var(--good-soft)" stroke="var(--good)" stroke-width="2.5"/>
+    <circle cx="208" cy="95" r="15" fill="var(--surface)" stroke="var(--good)" stroke-width="2.5"/>
+    <circle cx="282" cy="95" r="15" fill="var(--surface)" stroke="var(--good)" stroke-width="2.5"/>
+    <text x="245" y="50" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">2</text>
+    <text x="208" y="100" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">1</text>
+    <text x="282" y="100" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">3</text>
+    <text x="245" y="20" text-anchor="middle" font-size="11.5" font-weight="800" fill="var(--good)">middle up ⤴</text>
+    <text x="245" y="140" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--muted)">small left · big right</text>
+  </svg>`,
+  heap: `<svg viewBox="0 0 320 185" role="img" aria-label="The same three numbers as a tree and as an array, with arrows pairing children to slots">
+    <line x1="148" y1="42" x2="116" y2="70" stroke="var(--line)" stroke-width="2.5"/>
+    <line x1="172" y1="42" x2="204" y2="70" stroke="var(--line)" stroke-width="2.5"/>
+    <circle cx="160" cy="32" r="16" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/>
+    <circle cx="110" cy="80" r="16" fill="var(--surface)" stroke="var(--line)" stroke-width="2.5"/>
+    <circle cx="210" cy="80" r="16" fill="var(--surface)" stroke="var(--line)" stroke-width="2.5"/>
+    <text x="160" y="37" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">9</text>
+    <text x="110" y="85" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">5</text>
+    <text x="210" y="85" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">7</text>
+    <rect x="97" y="122" width="40" height="34" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/>
+    <rect x="140" y="122" width="40" height="34" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="2.5"/>
+    <rect x="183" y="122" width="40" height="34" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="2.5"/>
+    <text x="117" y="144" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">9</text>
+    <text x="160" y="144" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">5</text>
+    <text x="203" y="144" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">7</text>
+    <text x="117" y="172" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--muted)">0</text>
+    <text x="160" y="172" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--muted)">1</text>
+    <text x="203" y="172" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--muted)">2</text>
+    <path d="M96 90 C 80 112, 128 112, 152 122" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 4"/>
+    <path d="M224 90 C 240 112, 216 112, 206 120" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 4"/>
+    <text x="262" y="145" font-size="11" font-weight="800" fill="var(--accent)">2k+1, 2k+2</text>
+  </svg>`,
+  hashv: `<svg viewBox="0 0 320 185" role="img" aria-label="Two keys colliding on slot 3, resolved by chaining below or probing right">
+    <circle cx="128" cy="22" r="14" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5"/>
+    <text x="128" y="27" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)">10</text>
+    <circle cx="196" cy="22" r="14" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5"/>
+    <text x="196" y="27" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)">17</text>
+    <line x1="134" y1="35" x2="152" y2="62" stroke="var(--bad)" stroke-width="2.5"/>
+    <line x1="190" y1="35" x2="166" y2="62" stroke="var(--bad)" stroke-width="2.5"/>
+    <text x="162" y="20" text-anchor="middle" font-size="10.5" font-weight="800" fill="var(--muted)">mod 7</text>
+    ${[0, 1, 2, 3, 4, 5, 6].map(i => `<rect x="${16 + i * 42}" y="64" width="36" height="34" rx="7" fill="${i === 3 ? "var(--bad-soft)" : "var(--surface)"}" stroke="${i === 3 ? "var(--bad)" : "var(--line)"}" stroke-width="2.5"/><text x="${34 + i * 42}" y="86" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--muted)">${i}</text>`).join("")}
+    <text x="176" y="60" font-size="14" font-weight="900" fill="var(--bad)">!</text>
+    <line x1="150" y1="98" x2="150" y2="112" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 3"/>
+    <rect x="134" y="112" width="32" height="20" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+    <line x1="150" y1="132" x2="150" y2="142" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 3"/>
+    <rect x="134" y="142" width="32" height="20" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+    <text x="98" y="146" text-anchor="middle" font-size="11.5" font-weight="800" fill="var(--accent)">chain ↓</text>
+    <path d="M172 106 Q 187 122 200 106" fill="none" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M196 100 L202 108 L192 111 Z" fill="var(--gold)"/>
+    <text x="242" y="122" text-anchor="middle" font-size="11.5" font-weight="800" fill="var(--gold)">or probe right →</text>
+  </svg>`,
+  dij: `<svg viewBox="0 0 320 175" role="img" aria-label="A settled bubble around the start, swallowing the closest outside node next">
+    <circle cx="95" cy="88" r="62" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/>
+    <circle cx="72" cy="78" r="15" fill="var(--accent)"/>
+    <text x="72" y="83" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">S</text>
+    <circle cx="116" cy="108" r="9" fill="var(--accent)"/>
+    <text x="95" y="140" text-anchor="middle" font-size="10.5" font-weight="800" fill="var(--accent)">settled</text>
+    <circle cx="196" cy="55" r="16" fill="var(--gold-soft)" stroke="var(--gold)" stroke-width="3"/>
+    <text x="196" y="60" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">4</text>
+    <path d="M176 62 L160 70" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M158 66 L152 74 L164 76 Z" fill="var(--gold)"/>
+    <text x="232" y="30" text-anchor="middle" font-size="11.5" font-weight="800" fill="var(--gold)">closest → settle it</text>
+    <circle cx="256" cy="118" r="15" fill="var(--surface)" stroke="var(--line)" stroke-width="2.5"/>
+    <text x="256" y="123" text-anchor="middle" font-size="13" font-weight="800" fill="var(--muted)">9</text>
+    <line x1="209" y1="66" x2="243" y2="108" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 4"/>
+    <text x="248" y="80" font-size="11" font-weight="800" fill="var(--muted)">9 → 6?</text>
+  </svg>`,
+  pipes: `<svg viewBox="0 0 320 175" role="img" aria-label="Two pipe routes; the winner has the widest narrowest pipe">
+    <text x="14" y="95" font-size="14" font-weight="900" fill="var(--ink)">S</text>
+    <text x="298" y="95" font-size="14" font-weight="900" fill="var(--ink)">T</text>
+    <rect x="42" y="30" width="70" height="30" rx="6" fill="var(--code-bg)" stroke="var(--line)" stroke-width="2.5"/>
+    <rect x="116" y="39" width="70" height="12" rx="6" fill="var(--bad-soft)" stroke="var(--bad)" stroke-width="2.5"/>
+    <rect x="190" y="28" width="70" height="34" rx="6" fill="var(--code-bg)" stroke="var(--line)" stroke-width="2.5"/>
+    <text x="270" y="49" font-size="11.5" font-weight="800" fill="var(--bad)">min 3</text>
+    <text x="151" y="24" text-anchor="middle" font-size="10.5" font-weight="800" fill="var(--bad)">bottleneck</text>
+    <rect x="42" y="112" width="70" height="20" rx="6" fill="var(--good-soft)" stroke="var(--good)" stroke-width="2.5"/>
+    <rect x="116" y="110" width="70" height="24" rx="6" fill="var(--code-bg)" stroke="var(--line)" stroke-width="2.5"/>
+    <rect x="190" y="112" width="70" height="20" rx="6" fill="var(--good-soft)" stroke="var(--good)" stroke-width="2.5"/>
+    <text x="266" y="126" font-size="11.5" font-weight="800" fill="var(--good)">min 5 ✓</text>
+    <text x="160" y="162" text-anchor="middle" font-size="11.5" font-weight="800" fill="var(--muted)">shortest path ADDS — this takes the MIN</text>
+  </svg>`,
+  dpv: `<svg viewBox="0 0 320 185" role="img" aria-label="A call tree recomputing f2 twice versus a table computing it once">
+    <line x1="150" y1="32" x2="112" y2="52" stroke="var(--line)" stroke-width="2"/>
+    <line x1="170" y1="32" x2="208" y2="52" stroke="var(--line)" stroke-width="2"/>
+    <line x1="100" y1="70" x2="80" y2="88" stroke="var(--line)" stroke-width="2"/>
+    <line x1="120" y1="70" x2="140" y2="88" stroke="var(--line)" stroke-width="2"/>
+    <circle cx="160" cy="24" r="13" fill="var(--surface)" stroke="var(--line)" stroke-width="2.5"/>
+    <circle cx="110" cy="62" r="13" fill="var(--surface)" stroke="var(--line)" stroke-width="2.5"/>
+    <circle cx="210" cy="62" r="13" fill="var(--gold-soft)" stroke="var(--gold)" stroke-width="2.5"/>
+    <circle cx="78" cy="98" r="13" fill="var(--gold-soft)" stroke="var(--gold)" stroke-width="2.5"/>
+    <circle cx="142" cy="98" r="13" fill="var(--surface)" stroke="var(--line)" stroke-width="2.5"/>
+    <text x="160" y="28" text-anchor="middle" font-size="10" font-weight="800" fill="var(--ink)">f4</text>
+    <text x="110" y="66" text-anchor="middle" font-size="10" font-weight="800" fill="var(--ink)">f3</text>
+    <text x="210" y="66" text-anchor="middle" font-size="10" font-weight="800" fill="var(--gold)">f2</text>
+    <text x="78" y="102" text-anchor="middle" font-size="10" font-weight="800" fill="var(--gold)">f2</text>
+    <text x="142" y="102" text-anchor="middle" font-size="10" font-weight="800" fill="var(--ink)">f1</text>
+    <text x="243" y="60" font-size="12" font-weight="900" fill="var(--gold)">×2 😫</text>
+    <text x="286" y="98" text-anchor="end" font-size="10.5" font-weight="700" fill="var(--muted)">…it snowballs</text>
+    ${[0, 1, 2, 3, 4].map(i => `<rect x="${72 + i * 36}" y="128" width="32" height="28" rx="6" fill="${i === 2 ? "var(--gold-soft)" : "var(--surface)"}" stroke="${i === 2 ? "var(--gold)" : "var(--line)"}" stroke-width="2.5"/>`).join("")}
+    <text x="88" y="147" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)">1</text>
+    <text x="124" y="147" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)">1</text>
+    <text x="160" y="147" text-anchor="middle" font-size="12" font-weight="800" fill="var(--gold)">2</text>
+    <text x="196" y="147" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)">3</text>
+    <text x="232" y="147" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)">5</text>
+    <text x="268" y="147" font-size="11.5" font-weight="900" fill="var(--good)">×1 ✓</text>
+    <text x="160" y="176" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--muted)">table: fill left → right, each value once</text>
+  </svg>`,
+  ladder: `<svg viewBox="0 0 320 185" role="img" aria-label="Three podium steps: DFA with no memory, PDA with a stack, Turing machine with an infinite tape">
+    <rect x="18" y="116" width="88" height="52" rx="8" fill="var(--code-bg)" stroke="var(--line)" stroke-width="2.5"/>
+    <rect x="112" y="88" width="88" height="80" rx="8" fill="var(--code-bg)" stroke="var(--line)" stroke-width="2.5"/>
+    <rect x="206" y="56" width="96" height="112" rx="8" fill="var(--code-bg)" stroke="var(--line)" stroke-width="2.5"/>
+    <circle cx="52" cy="96" r="13" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5"/>
+    <path d="M44 84 C 38 68, 66 68, 60 84" fill="none" stroke="var(--ink)" stroke-width="2"/>
+    <circle cx="146" cy="68" r="13" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5"/>
+    ${[0, 1, 2].map(i => `<rect x="166" y="${74 - i * 11}" width="24" height="8" rx="3" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.8"/>`).join("")}
+    <circle cx="238" cy="36" r="13" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5"/>
+    ${[0, 1, 2].map(i => `<rect x="${256 + i * 16}" y="28" width="14" height="14" rx="3" fill="var(--purple-soft)" stroke="var(--purple)" stroke-width="1.8"/>`).join("")}
+    <text x="310" y="40" font-size="12" font-weight="800" fill="var(--purple)">…</text>
+    <text x="62" y="138" text-anchor="middle" font-size="12" font-weight="900" fill="var(--ink)">DFA</text>
+    <text x="62" y="155" text-anchor="middle" font-size="10" font-weight="700" fill="var(--muted)">no memory</text>
+    <text x="156" y="120" text-anchor="middle" font-size="12" font-weight="900" fill="var(--ink)">PDA</text>
+    <text x="156" y="137" text-anchor="middle" font-size="10" font-weight="700" fill="var(--accent)">+ stack</text>
+    <rect x="132" y="145" width="48" height="17" rx="6" fill="var(--gold-soft)"/>
+    <text x="156" y="157" text-anchor="middle" font-size="10.5" font-weight="800" fill="var(--gold)">aⁿbⁿ ✓</text>
+    <text x="254" y="90" text-anchor="middle" font-size="12" font-weight="900" fill="var(--ink)">Turing</text>
+    <text x="254" y="107" text-anchor="middle" font-size="10" font-weight="700" fill="var(--purple)">+ ∞ tape</text>
+  </svg>`,
+  pump: `<svg viewBox="0 0 320 175" role="img" aria-label="A path through three states with a loop over the middle one; pumping the loop breaks the word">
+    <line x1="86" y1="70" x2="142" y2="70" stroke="var(--muted)" stroke-width="2.5"/>
+    <path d="M138 64 L148 70 L138 76 Z" fill="var(--muted)"/>
+    <line x1="176" y1="70" x2="232" y2="70" stroke="var(--muted)" stroke-width="2.5"/>
+    <path d="M228 64 L238 70 L228 76 Z" fill="var(--muted)"/>
+    <circle cx="70" cy="70" r="15" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5"/>
+    <circle cx="160" cy="70" r="15" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/>
+    <circle cx="250" cy="70" r="15" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5"/>
+    <path d="M148 58 C 128 14, 192 14, 172 58" fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M168 52 L176 60 L164 63 Z" fill="var(--accent)"/>
+    <rect x="196" y="16" width="58" height="19" rx="7" fill="var(--gold)"/>
+    <text x="225" y="30" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">×2, ×3 …</text>
+    <text x="106" y="35" text-anchor="middle" font-size="11" font-weight="800" fill="var(--accent)">the loop</text>
+    <text x="160" y="112" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--muted)">few states + long word ⇒ must revisit one</text>
+    <text x="160" y="140" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">aⁿbⁿ → pump the a-loop → a…a bⁿ</text>
+    <text x="160" y="162" text-anchor="middle" font-size="12" font-weight="900" fill="var(--bad)">counts break ✗ — not regular</text>
+  </svg>`,
+  };
+})();
+
+const ONBOARDING = [
+  { e: "🎯", k: "Welcome", t: "One lesson = about 3 minutes. That's the whole commitment." },
+  { e: "🗺️", k: "The path", t: "Follow the path. Finish a level to unlock the next." },
+  { e: "❤️", k: "The rules", t: "3 hearts per lesson. Wrong answers come back until you beat them." },
+  { e: "🧠", k: "It learns you", t: "Smart Practice notices what you miss — and serves exactly that." },
+  { e: "🔥", k: "The habit", t: "Hit 30 XP a day to keep the flame. Small and daily beats big and rare." },
+];
+
+/* ================= PROFILE & ADAPTIVE MODEL ================= */
+const XP_FIRST = 10, XP_RETRY = 5, XP_COMBO = 2, HEARTS = 3, QUICK_N = 5, SMART_N = 7, LESSON_N = 7, DAY_GOAL = 30;
+const KEY = "cm52070-algo-quest";
+const BOX_DAYS = [0, 1, 3, 7, 14];
+const EMA_A = 0.3;
+
+function fresh() { return { v: 3, xp: 0, done: {}, streak: 0, lastDay: null, sound: true, q: {}, t: {}, totAtt: 0, totFirst: 0, dayXP: 0, dayDate: null, goalDay: null, onboarded: false, seenIntro: {} }; }
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && s.v === 3) {
+      if (s.introV !== 4) { s.introV = 4; s.seenIntro = {}; }  /* re-show intros once: simpler text + formula/code cards */
+      return s;
+    }
+    if (s && (s.v === 1 || s.v === 2)) {
+      const f = fresh();
+      f.xp = s.xp || 0; f.done = s.done || {}; f.streak = s.streak || 0; f.lastDay = s.lastDay || null;
+      f.sound = s.sound !== false; f.q = s.q || {}; f.t = s.t || {}; f.totAtt = s.totAtt || 0; f.totFirst = s.totFirst || 0;
+      f.onboarded = true; /* returning player — don't re-onboard */
+      return f;
+    }
+  } catch (e) {}
+  return fresh();
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) {} }
+let P = load();
+
+function today() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function touchDay() { const t = today(); if (P.dayDate !== t) { P.dayDate = t; P.dayXP = 0; } }
+function addXP(n) { touchDay(); P.xp += n; P.dayXP += n; }
+
+function record(q, right) {
+  const now = Date.now();
+  const qs = P.q[q.id] || (P.q[q.id] = { box: 0, last: 0, att: 0, wrong: 0 });
+  qs.att++; qs.last = now;
+  if (right) qs.box = Math.min(qs.box + 1, BOX_DAYS.length - 1);
+  else { qs.box = 0; qs.wrong++; }
+  const t = P.t[q.lvlId] || (P.t[q.lvlId] = { att: 0, first: 0, ema: 0.5 });
+  t.att++; if (right) t.first++;
+  t.ema = t.ema * (1 - EMA_A) + (right ? 1 : 0) * EMA_A;
+  P.totAtt++; if (right) P.totFirst++;
+}
+function isDue(q, now) {
+  const qs = P.q[q.id];
+  if (!qs) return true;
+  return (now - qs.last) / 86400000 >= BOX_DAYS[qs.box];
+}
+function mastery(lvlId) {
+  const t = P.t[lvlId];
+  if (!t || t.att === 0) return null;
+  return 0.5 * (t.first / t.att) + 0.5 * t.ema;
+}
+function weakTopics(min) {
+  return LEVELS
+    .map(L => ({ L, m: mastery(L.id), att: (P.t[L.id] || {}).att || 0 }))
+    .filter(x => x.att >= (min || 3) && x.m !== null && x.m < 0.75)
+    .sort((a, b) => a.m - b.m);
+}
+function smartQueue() {
+  const now = Date.now();
+  const unlocked = LEVELS.slice(0, Math.max(1, firstLockedIdx()));
+  const pool = [];
+  unlocked.forEach(L => L.qs.forEach(q => pool.push(q)));
+  const scored = pool.map(q => {
+    const qs = P.q[q.id];
+    const m = mastery(q.lvlId);
+    const weakness = m === null ? 0.5 : 1 - m;
+    const missed = qs ? Math.min(qs.wrong, 3) / 3 : 0;
+    const due = isDue(q, now) ? 1 : 0;
+    const freshB = qs ? 0 : 0.35;
+    const doneToday = qs && (now - qs.last) < 36e5 && qs.box > 0 ? 1 : 0;
+    const r = Math.random() * 0.5;
+    return { q, s: 2.2 * weakness + 1.5 * missed + 1.0 * due + freshB + r - 1.6 * doneToday };
+  });
+  scored.sort((a, b) => b.s - a.s);
+  return shuffle(scored.slice(0, SMART_N).map(x => x.q));
+}
+function bumpStreak() {
+  const t = today();
+  if (P.lastDay === t) return;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  const yStr = y.getFullYear() + "-" + String(y.getMonth() + 1).padStart(2, "0") + "-" + String(y.getDate()).padStart(2, "0");
+  P.streak = (P.lastDay === yStr) ? P.streak + 1 : 1;
+  P.lastDay = t;
+}
+function streakLive() {
+  if (!P.lastDay) return 0;
+  if (P.lastDay === today()) return P.streak;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  const yStr = y.getFullYear() + "-" + String(y.getMonth() + 1).padStart(2, "0") + "-" + String(y.getDate()).padStart(2, "0");
+  return (P.lastDay === yStr) ? P.streak : 0;
+}
+function shuffle(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function firstLockedIdx() {
+  for (let i = 0; i < LEVELS.length; i++) if (!P.done[LEVELS[i].id]) return i;
+  return LEVELS.length;
+}
+
+/* ================= SOUND ================= */
+let AC = null;
+function tone(freq, start, dur, type, vol) {
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || "sine"; o.frequency.value = freq;
+  const t0 = AC.currentTime + start;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(vol || 0.18, t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g).connect(AC.destination);
+  o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function snd(kind, combo) {
+  if (!P.sound) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === "suspended") AC.resume();
+    if (kind === "pick") tone(700, 0, 0.05, "sine", 0.06);
+    if (kind === "right") {
+      const r = Math.pow(2, Math.min(combo || 0, 8) / 12);   /* pitch climbs a semitone per combo step */
+      tone(659 * r, 0, 0.10, "sine", 0.16); tone(880 * r, 0.09, 0.16, "sine", 0.16);
+    }
+    if (kind === "wrong") { tone(196, 0, 0.20, "triangle", 0.14); tone(147, 0.10, 0.24, "triangle", 0.12); }
+    if (kind === "win") { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.09, 0.16, "sine", 0.15)); tone(1319, 0.36, 0.30, "sine", 0.12); }
+    if (kind === "goal") { [784, 988, 1175, 1568].forEach((f, i) => tone(f, i * 0.07, 0.14, "sine", 0.14)); }
+    if (kind === "fail") { tone(220, 0, 0.25, "triangle", 0.12); tone(175, 0.18, 0.35, "triangle", 0.12); }
+  } catch (e) {}
+}
+
+/* ================= CONFETTI ================= */
+const CONF_COLORS = ["#F5C542", "#4CC0A6", "#DD7361", "#86ABC9", "#9A8CD8"];
+function confetti(n) {
+  if (RM) return;
+  const w = window.innerWidth;
+  for (let i = 0; i < n; i++) {
+    const b = document.createElement("div");
+    b.className = "confetti-bit";
+    const size = 5 + Math.random() * 7;
+    b.style.width = size + "px";
+    b.style.height = size * (0.6 + Math.random() * 0.8) + "px";
+    b.style.left = Math.random() * w + "px";
+    b.style.background = CONF_COLORS[Math.floor(Math.random() * CONF_COLORS.length)];
+    document.body.appendChild(b);
+    const dur = 1100 + Math.random() * 900;
+    b.animate([
+      { transform: "translateY(0) rotate(0deg)", opacity: 1 },
+      { transform: "translateY(" + (window.innerHeight * 0.7 + Math.random() * 200) + "px) rotate(" + (300 + Math.random() * 400) + "deg)", opacity: 0.9, offset: 0.8 },
+      { transform: "translateY(" + (window.innerHeight + 40) + "px) rotate(" + (500 + Math.random() * 300) + "deg)", opacity: 0 },
+    ], { duration: dur, easing: "cubic-bezier(.2,.5,.6,1)" });
+    setTimeout(() => b.remove(), dur);
+  }
+}
+function countUp(el, target, prefix) {
+  if (RM) { el.textContent = (prefix || "") + target; return; }
+  const t0 = performance.now(), dur = 650;
+  function tick(t) {
+    const p = Math.min((t - t0) / dur, 1);
+    el.textContent = (prefix || "") + Math.round(target * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ================= CARD SCREENS (onboarding / topic intros) ================= */
+let cardState = null;
+function renderCards(cards, opts) {
+  cardState = { cards, i: 0, opts };
+  drawCard();
+}
+function cardNext() {
+  if (!cardState) return;
+  snd("pick");
+  if (cardState.i < cardState.cards.length - 1) { cardState.i++; drawCard(); }
+  else { const done = cardState.opts.onDone; cardState = null; done(); }
+}
+function cardBack() {
+  if (!cardState || cardState.i === 0) return;
+  snd("pick");
+  cardState.i--; drawCard();
+}
+function drawCard() {
+  const { cards, i, opts } = cardState;
+  const c = cards[i];
+  const last = i === cards.length - 1;
+  app.innerHTML = `
+  <div class="cardscreen" id="cardtap">
+    ${c.v && VIS[c.v] ? `<div class="c-vis">${VIS[c.v]}</div>` : c.f ? `<div class="c-formula">${c.f}</div>` : c.code ? `<pre class="c-code">${c.code}</pre>` : `<span class="c-emoji">${c.e}</span>`}
+    ${c.k ? `<span class="c-kicker"${c.gold ? ` style="color:var(--gold)"` : ""}>${c.k}</span>` : ""}
+    <p class="c-text">${c.t}</p>
+    <div class="cardnav">
+      <button class="navbtn" id="cardback" aria-label="Previous card" ${i === 0 ? "disabled" : ""}>‹</button>
+      <div class="dots">${cards.map((_, j) => `<span class="dot ${j <= i ? "on" : ""}"></span>`).join("")}</div>
+      <button class="navbtn primary" id="cardnext" aria-label="Next card" ${last ? `style="visibility:hidden"` : ""}>›</button>
+    </div>
+    ${last ? `<button class="btn" id="cardgo" style="max-width:16rem">${opts.goLabel || "Let's go"}</button>` : `<span class="c-hint">tap, swipe, or ‹ ›</span>`}
+    ${opts.skippable && !last ? `<button class="skip" id="cardskip">skip intro</button>` : ""}
+  </div>`;
+  const tap = document.getElementById("cardtap");
+  tap.addEventListener("click", e => {
+    if (e.target.closest("button")) return;
+    cardNext();
+  });
+  let sx = null;
+  tap.addEventListener("touchstart", e => { sx = e.touches[0].clientX; }, { passive: true });
+  tap.addEventListener("touchend", e => {
+    if (sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    sx = null;
+    if (dx < -40) cardNext();
+    else if (dx > 40) cardBack();
+  }, { passive: true });
+  document.getElementById("cardback").addEventListener("click", cardBack);
+  const nx = document.getElementById("cardnext");
+  if (nx) nx.addEventListener("click", cardNext);
+  const sk = document.getElementById("cardskip");
+  if (sk) sk.addEventListener("click", () => { const done = cardState.opts.onDone; cardState = null; done(); });
+  const go = document.getElementById("cardgo");
+  if (go) go.focus(); else if (nx) nx.focus();
+}
+
+/* ================= UI ================= */
+const app = document.getElementById("app");
+let S = null;
+
+function statbarHTML() {
+  touchDay();
+  const hit = P.dayXP >= DAY_GOAL;
+  return `<div class="statbar">
+    <span class="brand">🎯 Algo Quest</span>
+    <span class="stat fire" title="Day streak">🔥 ${streakLive()}</span>
+    <span class="stat goal ${hit ? "hit" : ""}" title="Today's XP goal">${hit ? "🏅" : "⚡"} ${Math.min(P.dayXP, 999)}/${DAY_GOAL}</span>
+    <button class="iconbtn" id="statsbtn" title="Your stats" aria-label="Your stats">📊</button>
+    <button class="iconbtn" id="soundbtn" title="Sound on/off" aria-label="Sound on/off">${P.sound ? "🔊" : "🔇"}</button>
+  </div>`;
+}
+function wireStatbar() {
+  document.getElementById("statsbtn").addEventListener("click", renderStats);
+  document.getElementById("soundbtn").addEventListener("click", function () {
+    P.sound = !P.sound; save();
+    this.textContent = P.sound ? "🔊" : "🔇";
+    snd("pick");
+  });
+}
+
+/* ---------- HOME ---------- */
+function renderHome() {
+  S = null;
+  if (!P.onboarded) {
+    return renderCards(ONBOARDING, { skippable: true, goLabel: "Start Level 1", onDone: () => { P.onboarded = true; save(); startLesson({ mode: "level", idx: 0 }); } });
+  }
+  window.scrollTo(0, 0);
+  const cur = firstLockedIdx();
+  const weak = weakTopics(3);
+  const weakIds = new Set(weak.slice(0, 3).map(w => w.L.id));
+  const allDone = cur === LEVELS.length;
+  const heroLevel = allDone ? null : LEVELS[cur];
+  const smartSub = P.totAtt < 10
+    ? "Answer ~10 questions first, then I'll learn your weak spots and build sessions around them."
+    : (weak.length
+        ? `Right now targeting: <b>${weak.slice(0, 2).map(w => w.L.emoji + " " + w.L.title).join("</b>, <b>")}</b> + anything due for review.`
+        : "No weak spots detected — this will serve due reviews and fresh questions.");
+  let html = statbarHTML();
+  if (heroLevel) {
+    html += `<button class="hero" id="hero">
+      <span class="h-emoji">${heroLevel.emoji}</span>
+      <span><span class="h-kicker">Next up · ~3 min</span><br><span class="h-title">${heroLevel.title}</span></span>
+      <span class="h-go">▶</span>
+    </button>`;
+  } else {
+    html += `<button class="hero" id="hero" style="background:var(--purple); border-bottom-color:var(--purple-deep)">
+      <span class="h-emoji">🧠</span>
+      <span><span class="h-kicker">All levels done · ~3 min</span><br><span class="h-title">Smart Practice</span></span>
+      <span class="h-go">▶</span>
+    </button>`;
+  }
+  html += `
+  <div class="quickcard smartcard">
+    <span class="qc-emoji">🧠</span>
+    <div class="qc-text">
+      <div class="qc-title">Smart Practice</div>
+      <div class="qc-sub">${smartSub}</div>
+    </div>
+    <button class="btn smart" data-act="smart" ${P.totAtt < 1 ? "disabled" : ""}>Go</button>
+  </div>
+  <div class="quickcard">
+    <span class="qc-emoji">🎲</span>
+    <div class="qc-text">
+      <div class="qc-title">Quick 5</div>
+      <div class="qc-sub">Five random questions. Two minutes, streak secured.</div>
+    </div>
+    <button class="btn" data-act="quick" ${cur === 0 ? "disabled" : ""}>Go</button>
+  </div>`;
+  let lastUnit = "";
+  LEVELS.forEach((L, i) => {
+    if (L.unit !== lastUnit) {
+      lastUnit = L.unit;
+      if (i > 0) html += `</div>`;
+      html += `<div class="unit-head"><div class="u-label">${L.unit.split("·")[0].trim()}</div><div class="u-title">${L.unit.split("·")[1].trim()}</div></div><div class="path">`;
+    }
+    const done = !!P.done[L.id];
+    const avail = i <= cur;
+    const isWeak = weakIds.has(L.id);
+    const cls = (done ? "done" : (avail ? "avail" : "locked")) + (isWeak && avail ? " weak" : "");
+    html += `<div class="node-wrap">
+      ${i === cur ? `<span class="start-pill">START</span>` : ""}
+      <button class="node ${cls}" data-lvl="${i}" ${avail ? "" : "disabled"} aria-label="${L.title}${done ? " (completed)" : avail ? "" : " (locked)"}${isWeak ? " (weak spot)" : ""}">
+        ${avail ? L.emoji : "🔒"}${done ? `<span class="tick">✓</span>` : ""}${isWeak && avail ? `<span class="weakdot">💪</span>` : ""}
+      </button>
+      <span class="node-label">${L.title}</span>
+    </div>`;
+  });
+  html += `</div>
+  <p class="muted small" style="text-align:center; margin-top:2rem">
+    ${Object.keys(P.done).length}/${LEVELS.length} levels · ⚡ ${P.xp} total XP · 💪 = the stats say this needs work
+  </p>`;
+  app.innerHTML = html;
+  wireStatbar();
+  document.getElementById("hero").addEventListener("click", () => { snd("pick"); heroLevel ? startLesson({ mode: "level", idx: cur }) : startLesson({ mode: "smart" }); });
+  app.querySelectorAll(".node:not(.locked)").forEach(b => b.addEventListener("click", () => { snd("pick"); startLesson({ mode: "level", idx: +b.dataset.lvl }); }));
+  const qb = app.querySelector('[data-act="quick"]');
+  if (qb && !qb.disabled) qb.addEventListener("click", () => { snd("pick"); startLesson({ mode: "quick" }); });
+  const sb = app.querySelector('[data-act="smart"]');
+  if (sb && !sb.disabled) sb.addEventListener("click", () => { snd("pick"); startLesson({ mode: "smart" }); });
+}
+
+/* ---------- STATS ---------- */
+function levelLabel(m, att) {
+  if (att < 3) return { cls: "na", txt: "More data needed" };
+  if (m < 0.5) return { cls: "weak", txt: "Needs work" };
+  if (m < 0.75) return { cls: "mid", txt: "Getting there" };
+  return { cls: "strong", txt: "Strong" };
+}
+function renderStats() {
+  S = null;
+  window.scrollTo(0, 0);
+  const acc = P.totAtt ? Math.round(100 * P.totFirst / P.totAtt) : 0;
+  const rows = LEVELS.map(L => {
+    const t = P.t[L.id];
+    const att = t ? t.att : 0;
+    const m = mastery(L.id);
+    return { L, att, m: m === null ? 0 : m };
+  }).sort((a, b) => (a.att < 3 ? 2 : a.m) - (b.att < 3 ? 2 : b.m));
+  const weak = weakTopics(3).slice(0, 3);
+  let html = statbarHTML() + `
+  <h2 class="stats-h">📊 Your stats</h2>
+  <div class="res-cards" style="justify-content:flex-start">
+    <div class="res-card gold"><div class="rc-num">⚡ ${P.xp}</div><div class="rc-label">Total XP</div></div>
+    <div class="res-card"><div class="rc-num">🔥 ${streakLive()}</div><div class="rc-label">Streak</div></div>
+    <div class="res-card"><div class="rc-num">${P.totAtt}</div><div class="rc-label">Answered</div></div>
+    <div class="res-card green"><div class="rc-num">${acc}%</div><div class="rc-label">First-try</div></div>
+  </div>`;
+  if (weak.length) {
+    html += `<h2 class="stats-h">💪 Weak spots to attack</h2>`;
+    weak.forEach(w => {
+      const t = P.t[w.L.id];
+      html += `<div class="weakspot">
+        <span style="font-size:1.5rem">${w.L.emoji}</span>
+        <div class="ws-text">
+          <div class="ws-title">${w.L.title}</div>
+          <div class="ws-sub">${Math.round(100 * t.first / t.att)}% first-try over ${t.att} answers — ${w.L.blurb}</div>
+        </div>
+        <button class="btn bad" data-lvl="${LVL_BY_ID[w.L.id].i}">Train</button>
+      </div>`;
+    });
+  } else if (P.totAtt >= 10) {
+    html += `<p class="muted">No weak spots right now — every practised topic is at 75%+ mastery. Smart Practice will focus on due reviews and fresh material. 🎉</p>`;
+  }
+  html += `<h2 class="stats-h">Mastery by topic <span class="muted small" style="font-weight:600">(weakest first)</span></h2>`;
+  rows.forEach(r => {
+    const lb = levelLabel(r.m, r.att);
+    const pct = Math.round(100 * r.m);
+    html += `<div class="mastery-row">
+      <span class="m-emoji">${r.L.emoji}</span>
+      <span class="m-title">${r.L.title} <span class="m-badge ${lb.cls}">${lb.txt}</span></span>
+      <span class="m-pct">${r.att < 1 ? "—" : pct + "%"}</span>
+      <div class="mbar"><div class="mfill ${lb.cls === "na" ? "" : lb.cls}" style="width:${r.att < 1 ? 0 : pct}%"></div></div>
+    </div>`;
+  });
+  html += `
+  <div class="howbox"><b>How Smart Practice picks your questions:</b> every answer updates a per-topic <b>mastery score</b> (recent answers weigh ~30%, so improving shows) and a per-question <b>review box</b> (miss → back tomorrow; nail it → retreats to 1, 3, 7, 14 days). Sessions rank every question by: topic weakness ×2.2 + misses on that exact question ×1.5 + overdue ×1.0 + a dash of randomness, and deal you the top ${SMART_N}.</div>
+  <button class="btn ghost" id="back">← Back to path</button>`;
+  app.innerHTML = html;
+  wireStatbar();
+  document.getElementById("back").addEventListener("click", renderHome);
+  app.querySelectorAll(".weakspot .btn").forEach(b => b.addEventListener("click", () => { snd("pick"); startLesson({ mode: "level", idx: +b.dataset.lvl }); }));
+}
+
+/* ---------- LESSON ---------- */
+function startLesson(opt) {
+  if (opt.mode === "level") {
+    const L = LEVELS[opt.idx];
+    if (!P.seenIntro[L.id]) {
+      const cards = L.intro.map((c, i) => ({ e: c.e || L.emoji, k: (c.k || L.title) + " · " + (i + 1) + "/" + L.intro.length, t: c.t, v: c.v, f: c.f, code: c.code, gold: !!c.k }));
+      return renderCards(cards, { skippable: true, goLabel: "Start lesson", onDone: () => { P.seenIntro[L.id] = true; save(); reallyStart(opt); } });
+    }
+  }
+  reallyStart(opt);
+}
+function reallyStart(opt) {
+  let qs, title;
+  if (opt.mode === "quick") {
+    const pool = [];
+    LEVELS.slice(0, Math.max(1, firstLockedIdx())).forEach(L => L.qs.forEach(q => pool.push(q)));
+    qs = shuffle(pool).slice(0, QUICK_N);
+    title = "Quick 5";
+  } else if (opt.mode === "smart") {
+    qs = smartQueue();
+    title = "Smart Practice";
+  } else {
+    const L = LEVELS[opt.idx];
+    const unseen = [], missed = [], rest = [];
+    L.qs.forEach(q => {
+      const st = P.q[q.id];
+      if (!st) unseen.push(q);
+      else if (st.wrong > 0 && st.box === 0) missed.push(q);
+      else rest.push(q);
+    });
+    qs = shuffle(unseen).concat(shuffle(missed), shuffle(rest)).slice(0, LESSON_N);
+    title = L.title;
+  }
+  S = {
+    mode: opt.mode, idx: opt.idx, title,
+    queue: qs, retry: [],
+    total: qs.length, solved: 0,
+    hearts: HEARTS, xp: 0,
+    firstTryRight: 0,
+    inRetry: false, combo: 0,
+    cur: null, sel: -1, phase: "answer",
+    topicHits: {},
+  };
+  nextQuestion();
+}
+function nextQuestion() {
+  if (S.queue.length === 0) {
+    if (S.retry.length === 0) return renderResults();
+    S.queue = shuffle(S.retry); S.retry = []; S.inRetry = true;
+  }
+  S.cur = S.queue.shift();
+  S.sel = -1; S.phase = "answer";
+  renderQuestion();
+}
+function renderQuestion() {
+  window.scrollTo(0, 0);
+  const q = S.cur;
+  const pct = Math.round(100 * S.solved / S.total);
+  const topicTag = (S.mode !== "level") ? `<span class="qtag topic">${LVL_BY_ID[q.lvlId].L.emoji} ${LVL_BY_ID[q.lvlId].L.title}</span>` : "";
+  const infoBtn = (S.mode === "level") ? `<button class="infobtn" id="replayintro" title="Recap this topic" aria-label="Recap this topic">i</button>` : "";
+  app.innerHTML = `
+  <div class="${S.mode === "smart" ? "smart-run" : ""}">
+  <div class="lesson-top">
+    <button class="quit" aria-label="Quit lesson" title="Quit">✕</button>
+    <div class="pbar"><div class="fill" style="width:${pct}%"></div></div>
+    ${infoBtn}
+    <span class="hearts" aria-label="${S.hearts} hearts left">${"❤️".repeat(S.hearts)}${"🤍".repeat(HEARTS - S.hearts)}</span>
+  </div>
+  ${S.combo >= 2 ? `<div class="combo">🔥 ${S.combo} in a row</div>` : ""}
+  ${S.inRetry ? `<span class="qtag retry">↻ Retry — get it right to finish</span>` : ""}${topicTag}${q.tag && !S.inRetry ? `<span class="qtag">${q.tag}</span>` : ""}
+  <p class="qprompt">${q.q}</p>
+  ${q.code ? `<div class="qcode">${q.code}</div>` : ""}
+  <div class="opts" role="listbox" aria-label="Answers">
+    ${q.o.map((o, i) => `<button class="opt" data-i="${i}"><span class="key">${i + 1}</span><span>${o}</span></button>`).join("")}
+  </div>
+  <div class="spacer"></div>
+  <div class="bottom"><div class="inner">
+    <button class="btn" id="check" disabled>Check</button>
+  </div></div>
+  </div>`;
+  const qb = app.querySelector(".quit");
+  qb.addEventListener("click", () => {
+    if (qb.dataset.armed) return renderHome();
+    qb.dataset.armed = "1";
+    qb.textContent = "leave?";
+    qb.style.cssText = "color:var(--bad);font-weight:800;font-size:.9rem";
+    setTimeout(() => {
+      if (!qb.isConnected) return;
+      delete qb.dataset.armed;
+      qb.textContent = "✕";
+      qb.style.cssText = "";
+    }, 2500);
+  });
+  const ri = document.getElementById("replayintro");
+  if (ri) ri.addEventListener("click", () => {
+    const L = LEVELS[S.idx];
+    S.phase = "intro";
+    const cards = L.intro.map((c, i) => ({ e: c.e || L.emoji, k: (c.k || L.title) + " · " + (i + 1) + "/" + L.intro.length, t: c.t, v: c.v, f: c.f, code: c.code, gold: !!c.k }));
+    renderCards(cards, { goLabel: "Back to question", onDone: () => { S.sel = -1; S.phase = "answer"; renderQuestion(); } });
+  });
+  app.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => {
+    snd("pick");
+    S.sel = +b.dataset.i;
+    app.querySelectorAll(".opt").forEach(x => x.classList.toggle("sel", +x.dataset.i === S.sel));
+    document.getElementById("check").disabled = false;
+  }));
+  document.getElementById("check").addEventListener("click", e => { e.stopPropagation(); check(); });
+}
+function check() {
+  if (S.phase !== "answer" || S.sel < 0) return;
+  S.phase = "feedback";
+  const q = S.cur, right = S.sel === q.a;
+  if (right) S.combo++; else S.combo = 0;
+  snd(right ? "right" : "wrong", S.combo - 1);
+  app.querySelectorAll(".opt").forEach(b => {
+    const i = +b.dataset.i;
+    b.disabled = true;
+    if (i === q.a) b.classList.add("right");
+    else if (i === S.sel && !right) b.classList.add("wrong");
+  });
+  if (!S.inRetry) {
+    record(q, right);
+    const th = S.topicHits[q.lvlId] || (S.topicHits[q.lvlId] = { r: 0, n: 0 });
+    th.n++; if (right) th.r++;
+  }
+  const goalBefore = P.dayXP >= DAY_GOAL;
+  let gained = 0, comboBonus = 0;
+  if (right) {
+    gained = S.inRetry ? XP_RETRY : XP_FIRST;
+    if (!S.inRetry && S.combo >= 3) comboBonus = XP_COMBO;
+    S.xp += gained + comboBonus;
+    addXP(gained + comboBonus);
+    if (!S.inRetry) S.firstTryRight++;
+    S.solved++;
+    confetti(S.combo >= 3 ? 26 : 12);
+  } else {
+    S.hearts--;
+    S.retry.push(q);
+    const h = app.querySelector(".hearts");
+    if (h) h.classList.add("lost");
+  }
+  save();
+  const goalJustHit = !goalBefore && P.dayXP >= DAY_GOAL;
+  const bottom = app.querySelector(".bottom");
+  bottom.classList.add(right ? "fb-good" : "fb-bad");
+  const headline = right
+    ? (S.combo >= 3 ? `${["Nice!", "Great!", "On fire!", "Unstoppable!"][Math.min(S.combo - 3, 3)]} +${gained}${comboBonus ? " +" + comboBonus + " combo" : ""} XP` : `Correct! +${gained} XP`)
+    : `Not quite — the answer is highlighted`;
+  bottom.querySelector(".inner").innerHTML = `
+    ${right && !RM ? `<span class="xpfly">+${gained + comboBonus}</span>` : ""}
+    <p class="fb-head" role="status">${headline}${goalJustHit ? " · 🏅 daily goal hit!" : ""}</p>
+    <p class="fb-why">${q.why}</p>
+    <button class="btn ${right ? "good" : "bad"}" id="cont">${right ? "Continue" : (S.hearts === 0 ? "See result" : "Got it")}</button>`;
+  if (goalJustHit) { snd("goal"); confetti(40); }
+  const proceed = () => {
+    if (S.phase !== "feedback") return;
+    S.phase = "advancing";
+    if (S.hearts === 0) return renderFailed();
+    nextQuestion();
+  };
+  document.getElementById("cont").addEventListener("click", e => { e.stopPropagation(); proceed(); });
+  setTimeout(() => bottom.addEventListener("click", proceed), 0);  /* next tick, so the Check tap can't bubble into it */
+  document.getElementById("cont").focus();
+}
+document.addEventListener("keydown", e => {
+  if (cardState) {
+    const onBtn = e.target && e.target.tagName === "BUTTON";
+    if (e.key === "ArrowRight") { e.preventDefault(); cardNext(); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); cardBack(); }
+    else if ((e.key === "Enter" || e.key === " ") && !onBtn) { e.preventDefault(); cardNext(); }
+    return;
+  }
+  if (!S || !S.cur) return;
+  if (S.phase === "answer") {
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= S.cur.o.length) {
+      const b = app.querySelector(`.opt[data-i="${n - 1}"]`);
+      if (b) b.click();
+    } else if (e.key === "Enter") {
+      const c = document.getElementById("check");
+      if (c && !c.disabled) c.click();
+    }
+  } else if (S.phase === "feedback" && e.key === "Enter") {
+    const c = document.getElementById("cont");
+    if (c) c.click();
+  }
+});
+
+/* ---------- RESULTS ---------- */
+function renderResults() {
+  const acc = S.total ? Math.round(100 * S.firstTryRight / S.total) : 0;
+  const isLevel = S.mode === "level";
+  const wasNew = isLevel && !P.done[LEVELS[S.idx].id];
+  if (isLevel) P.done[LEVELS[S.idx].id] = true;
+  bumpStreak();
+  touchDay();
+  const goalHit = P.dayXP >= DAY_GOAL && P.goalDay !== today();
+  if (goalHit) P.goalDay = today();
+  save();
+  snd("win");
+  confetti(acc === 100 ? 70 : 40);
+  const allDone = firstLockedIdx() === LEVELS.length;
+  const topics = Object.keys(S.topicHits);
+  const breakdown = (S.mode !== "level" && topics.length)
+    ? `<p class="small" style="margin-top:.4rem">${topics.map(id => {
+        const th = S.topicHits[id], L = LVL_BY_ID[id].L;
+        return `${L.emoji} ${th.r}/${th.n}`;
+      }).join(" &nbsp; ")}</p>`
+    : "";
+  app.innerHTML = `
+  <div class="center">
+    <div class="big-emoji">${acc === 100 ? "🏆" : "🎉"}</div>
+    <p class="res-title">${S.mode === "quick" ? "Quick 5 done!" : S.mode === "smart" ? "Smart session done!" : (wasNew ? `Level complete: ${S.title}` : `${S.title} — practised!`)}</p>
+    ${goalHit ? `<div class="goalbanner">🏅 Daily goal smashed — flame secured for today</div>` : ""}
+    <div class="res-cards">
+      <div class="res-card gold"><div class="rc-num" id="xpnum">+0</div><div class="rc-label">XP</div></div>
+      <div class="res-card green"><div class="rc-num">${acc}%</div><div class="rc-label">First try</div></div>
+      <div class="res-card"><div class="rc-num">🔥 ${streakLive()}</div><div class="rc-label">Streak</div></div>
+    </div>
+    ${breakdown}
+    ${(() => {
+      if (!isLevel) return "";
+      const left = LEVELS[S.idx].qs.filter(q => !P.q[q.id]).length;
+      return left > 0 ? `<p class="small" style="font-weight:800; color: var(--accent)">✨ ${left} fresh question${left === 1 ? "" : "s"} left in this level — replay it to see new ones.</p>` : "";
+    })()}
+    ${S.mode === "smart" ? `<p class="muted small">Your mastery scores just updated — check 📊 to see the bars move.</p>` : acc < 100 ? `<p class="muted small">Missed ones were re-asked until you beat them. They'll resurface in Smart Practice tomorrow.</p>` : `<p class="muted small">Flawless. These questions retreat to longer review intervals — Smart Practice will bring them back before the exam.</p>`}
+    ${allDone && isLevel ? `<p style="font-weight:800">🎓 All 12 levels complete — now let Smart Practice grind your weak spots down until exam day.</p>` : ""}
+    <button class="btn" id="home">Continue</button>
+  </div>`;
+  countUp(document.getElementById("xpnum"), S.xp, "+");
+  document.getElementById("home").addEventListener("click", renderHome);
+  document.getElementById("home").focus();
+}
+function renderFailed() {
+  snd("fail");
+  app.innerHTML = `
+  <div class="center">
+    <div class="big-emoji">💔</div>
+    <p class="res-title">Out of hearts!</p>
+    <p class="muted">No harm done — XP you earned is banked (+${S.xp}), and your stats recorded what to work on. The re-shuffle will feel easier.</p>
+    <div style="display:flex; flex-direction:column; gap:.6rem; max-width:18rem; margin:1.4rem auto 0">
+      <button class="btn" id="retry">Try again</button>
+      <button class="btn ghost" id="home">Back to path</button>
+    </div>
+  </div>`;
+  document.getElementById("retry").addEventListener("click", () => reallyStart({ mode: S.mode, idx: S.idx }));
+  document.getElementById("home").addEventListener("click", renderHome);
+}
+
+renderHome();
+
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
