@@ -1801,10 +1801,14 @@ function mAVL(o) {
       const child = nodes[id][heavy];
       const cb = H(nodes[child].l) - H(nodes[child].r);
       const zig = (b > 1 && cb < 0) || (b < -1 && cb > 0);
-      snap("Node <b>" + id + "</b> is now off by " + Math.abs(b) + " — too far. The trouble path is <b>" + id + " → " + child + " → " + v + "</b>, which is " +
+      /* third node on the trouble path is the heavy GRANDCHILD, which is not
+         always the value just inserted — the insert can land deeper down */
+      const gkid = nodes[child][zig ? (heavy === "l" ? "r" : "l") : heavy];
+      snap("Node <b>" + id + "</b> is now off by " + Math.abs(b) + " — too far. The trouble path runs from the unbalanced node down its heavy side: <b>" + id + " → " + child + " → " + gkid + "</b>" +
+        (gkid === v ? "" : " (the " + v + " you just inserted sits further down, but the rotation only involves these three)") + ". That is " +
         (zig ? "a <b>zig-zag</b>, so it needs a <b>double</b> rotation." : "a <b>straight line</b>, so one <b>single</b> rotation fixes it."),
-        { [id]: "look", [child]: "path", [v]: "path" });
-      const three = [id, child, v].sort((p, q) => p - q);
+        { [id]: "look", [child]: "path", [gkid]: "path" });
+      const three = [id, child, gkid].sort((p, q) => p - q);
       const mid = three[1];
       snap("Shortcut that always works: of those three values <b>" + three.join(", ") + "</b>, the <b>middle one (" + mid + ")</b> becomes the new local root, and the other two become its children.",
         { [mid]: "lock", [three[0]]: "path", [three[2]]: "path" });
