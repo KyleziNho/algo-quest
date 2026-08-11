@@ -7,6 +7,7 @@ A bite-size, Duolingo-style revision game for **CM52070 Algorithms & Complexity*
 ## What's inside
 
 - **12 levels across 4 units** covering the whole module, with 242 multiple-choice questions, every one with a plain-English explanation.
+- **Playground** — eight algorithms you can watch actually run: Dijkstra, BSTs, AVL rotations, heaps, insertion vs Shell sort, hash collisions, Floyd–Warshall (including the bandwidth variant) and Fibonacci naive-vs-DP. Each one narrates itself step by step and can be scrubbed backwards.
 - **Smart Practice** — after ~10 answers it learns your weak topics and builds sessions around them (spaced repetition + topic mastery tracking).
 - **Hearts, XP, combos, streaks and a daily goal** to keep revision habitual.
 - **Stats screen** showing per-topic mastery and your weak spots.

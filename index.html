@@ -407,6 +407,208 @@
     .stat { padding: .2rem .5rem; font-size: .85rem; }
     .hero { padding: .9rem 1rem; }
   }
+
+  /* ===================== PLAYGROUND ===================== */
+  /* One colour language for every machine:
+     idle = nothing yet · look = examining now · lock = finalised
+     path = the answer · drop = rejected/worse                     */
+  :root {
+    --vz-look: var(--gold);   --vz-look-soft: var(--gold-soft);
+    --vz-lock: var(--accent); --vz-lock-soft: var(--accent-soft);
+    --vz-path: var(--purple); --vz-path-soft: var(--purple-soft);
+    --vz-drop: var(--bad);    --vz-drop-soft: var(--bad-soft);
+    --vz-dur: .42s;
+    --vz-ease: cubic-bezier(.34, 1.32, .5, 1);
+  }
+
+  .pg-head { display: flex; align-items: center; gap: .6rem; margin: .2rem 0 1rem; }
+  .pg-head .pg-back {
+    background: var(--surface); border: 2px solid var(--line); border-bottom-width: 4px;
+    border-radius: 999px; width: 2.6rem; height: 2.6rem; flex: none;
+    display: grid; place-items: center; font-size: 1.2rem; color: var(--ink); padding: 0 0 .1rem;
+  }
+  .pg-head .pg-back:active { transform: translateY(2px); border-bottom-width: 2px; }
+  .pg-head .pg-title { font-weight: 900; font-size: 1.15rem; line-height: 1.2; }
+  .pg-head .pg-sub { color: var(--muted); font-size: .82rem; }
+
+  /* ---- machine picker ---- */
+  .pg-intro { font-size: .92rem; color: var(--muted); margin: 0 0 1rem; }
+  .pg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+  @media (max-width: 360px) { .pg-grid { grid-template-columns: 1fr; } }
+  .pg-card {
+    background: var(--surface); border: 2px solid var(--line); border-bottom-width: 5px;
+    border-radius: 16px; padding: .85rem .8rem; text-align: left;
+    display: flex; flex-direction: column; gap: .15rem; min-height: 6.6rem;
+    transition: transform .07s ease, border-color .2s ease;
+  }
+  .pg-card:active { transform: translateY(2px); border-bottom-width: 3px; }
+  .pg-card .pc-emoji { font-size: 1.7rem; line-height: 1.1; }
+  .pg-card .pc-title { font-weight: 900; font-size: .95rem; }
+  .pg-card .pc-sub { color: var(--muted); font-size: .76rem; line-height: 1.35; margin-top: auto; }
+  .pg-card.u1 { border-color: var(--accent); }
+  .pg-card.u2 { border-color: var(--gold); }
+  .pg-card.u3 { border-color: var(--purple); }
+  .pg-card.u4 { border-color: var(--bad); }
+
+  /* ---- stage ---- */
+  .vz-stage {
+    background: var(--surface); border: 2px solid var(--line);
+    border-radius: 18px; overflow: hidden; margin-bottom: .7rem;
+    touch-action: pan-y;
+  }
+  .vz-stage svg { width: 100%; height: auto; display: block; }
+  .vz-stage svg text { font-family: inherit; }
+
+  .vz-node, .vz-cell, .vz-slot, .vz-bar, .vz-mnode { transition: transform var(--vz-dur) var(--vz-ease); }
+  .vz-node circle, .vz-cell rect, .vz-bar rect, .vz-mnode circle {
+    transition: fill var(--vz-dur) ease, stroke var(--vz-dur) ease, opacity var(--vz-dur) ease;
+  }
+  .vz-edge line, .vz-edge path { transition: stroke var(--vz-dur) ease, stroke-width var(--vz-dur) ease, opacity var(--vz-dur) ease; }
+  .vz-in { animation: vzPop .34s var(--vz-ease); }
+  @keyframes vzPop { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: scale(1); } }
+  .n-look circle { animation: vzPulse 1.2s ease-in-out infinite; }
+  @keyframes vzPulse { 0%, 100% { opacity: 1; } 50% { opacity: .68; } }
+
+  /* bars want solid mass, not an outline — they are the data, not a container */
+  .vz-bar rect { stroke: none; }
+  .vz-bar.n-idle rect { fill: var(--accent); opacity: .3; }
+  .vz-bar.n-seen rect { fill: var(--accent); opacity: .5; }
+  .vz-bar.n-look rect { fill: var(--vz-look); opacity: 1; }
+  .vz-bar.n-lock rect { fill: var(--vz-lock); opacity: 1; }
+  .vz-bar.n-look .vz-label, .vz-bar.n-lock .vz-label { fill: #fff; }
+
+  .vz-label { font-size: 13px; font-weight: 800; fill: var(--ink); }
+  /* halo so numbers stay readable where they cross an edge */
+  .vz-num, .vz-w, .vz-cap {
+    paint-order: stroke fill; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round;
+  }
+  .vz-num { font-size: 12px; font-weight: 800; fill: var(--ink); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  .vz-w { font-size: 12px; font-weight: 800; fill: var(--muted); }
+  .vz-cap { font-size: 10px; font-weight: 800; fill: var(--muted); letter-spacing: .08em; }
+
+  /* ---- narration: the star of the show ---- */
+  .vz-say {
+    display: flex; gap: .6rem; align-items: flex-start;
+    background: var(--accent-soft); border-radius: 14px;
+    padding: .75rem .9rem; margin-bottom: .7rem; min-height: 4.4rem;
+  }
+  .vz-say .vs-emoji { font-size: 1.2rem; line-height: 1.35; flex: none; }
+  .vz-say .vs-text { font-size: .93rem; font-weight: 600; line-height: 1.45; }
+  .vz-say .vs-text b { font-weight: 900; color: var(--accent-deep); }
+  .vz-say.done { background: var(--gold-soft); }
+  .vz-say.done .vs-text b { color: var(--gold); }
+
+  /* ---- scrubber + transport ---- */
+  .vz-scrub { display: flex; align-items: center; gap: .6rem; margin-bottom: .55rem; }
+  .vz-scrub input[type=range] {
+    flex: 1; -webkit-appearance: none; appearance: none;
+    background: transparent; height: 1.8rem; margin: 0; padding: 0;
+  }
+  .vz-scrub input[type=range]::-webkit-slider-runnable-track {
+    height: 10px; border-radius: 999px; background: var(--line);
+  }
+  .vz-scrub input[type=range]::-moz-range-track { height: 10px; border-radius: 999px; background: var(--line); }
+  .vz-scrub input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 1.7rem; height: 1.7rem; border-radius: 50%; margin-top: -.42rem;
+    background: var(--accent); border: 3px solid var(--surface);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  .vz-scrub input[type=range]::-moz-range-thumb {
+    width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 3px solid var(--surface);
+    background: var(--accent); box-shadow: 0 0 0 2px var(--accent);
+  }
+  .vz-step {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: .78rem; font-weight: 800; color: var(--muted);
+    flex: none; min-width: 3.6rem; text-align: right;
+  }
+
+  .vz-transport { display: flex; gap: .5rem; align-items: center; }
+  .vz-tbtn {
+    background: var(--surface); border: 2px solid var(--line); border-bottom-width: 4px;
+    border-radius: 12px; height: 3rem; flex: 1;
+    display: grid; place-items: center; font-size: 1.1rem; color: var(--ink); padding: 0 0 .15rem;
+    transition: transform .06s ease;
+  }
+  .vz-tbtn:active { transform: translateY(2px); border-bottom-width: 2px; }
+  .vz-tbtn[disabled] { opacity: .35; }
+  .vz-tbtn[disabled]:active { transform: none; border-bottom-width: 4px; }
+  .vz-tbtn.play {
+    flex: 2.2; background: var(--accent); color: #fff;
+    border-color: var(--accent-deep); border-bottom-color: var(--accent-deep);
+    font-size: .95rem; font-weight: 900; letter-spacing: .05em; text-transform: uppercase;
+  }
+  .vz-tbtn.speed { font-size: .85rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+
+  /* ---- per-machine controls ---- */
+  .vz-ctrls { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .8rem; }
+  .vz-chip {
+    background: var(--surface); border: 2px solid var(--line); border-bottom-width: 3px;
+    border-radius: 999px; padding: .42rem .85rem;
+    font-size: .84rem; font-weight: 800; color: var(--ink);
+    transition: transform .06s ease;
+  }
+  .vz-chip:active { transform: translateY(1px); border-bottom-width: 2px; }
+  .vz-chip.on { background: var(--accent); border-color: var(--accent-deep); color: #fff; }
+  .vz-chip.ghost { color: var(--muted); }
+  .vz-input {
+    width: 4.6rem; font: inherit; font-weight: 800; text-align: center;
+    background: var(--surface); color: var(--ink);
+    border: 2px solid var(--line); border-bottom-width: 3px; border-radius: 999px;
+    padding: .42rem .5rem;
+  }
+  .vz-input:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+  .vz-group { display: flex; gap: .4rem; align-items: center; width: 100%; }
+  .vz-group .vz-glabel { font-size: .78rem; font-weight: 800; color: var(--muted); }
+
+  /* ---- readouts (counters that make the point) ---- */
+  .vz-reads { display: flex; gap: .5rem; margin-bottom: .7rem; }
+  .vz-read {
+    flex: 1; background: var(--surface); border: 2px solid var(--line);
+    border-radius: 12px; padding: .45rem .5rem; text-align: center;
+  }
+  .vz-read .vr-num {
+    font-size: 1.15rem; font-weight: 900; font-variant-numeric: tabular-nums;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .vz-read .vr-lab { font-size: .6rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+  .vz-read.look .vr-num { color: var(--gold); }
+  .vz-read.lock .vr-num { color: var(--accent); }
+  .vz-read.path .vr-num { color: var(--purple); }
+  .vz-read.drop .vr-num { color: var(--bad); }
+
+  /* ---- legend ---- */
+  .vz-key { display: flex; flex-wrap: wrap; gap: .3rem .8rem; margin: .8rem 0 0; }
+  .vz-key span { display: flex; align-items: center; gap: .32rem; font-size: .74rem; font-weight: 700; color: var(--muted); }
+  .vz-key i { width: .72rem; height: .72rem; border-radius: 50%; display: block; border: 2px solid var(--line); background: var(--surface); }
+  .vz-key i.look { background: var(--gold-soft); border-color: var(--gold); }
+  .vz-key i.lock { background: var(--accent); border-color: var(--accent-deep); }
+  .vz-key i.path { background: var(--purple); border-color: var(--purple-deep); }
+
+  .vz-note { font-size: .84rem; color: var(--muted); margin: .9rem 0 0; }
+  .vz-note b { color: var(--ink); }
+
+  /* ---- the shared state language: same five looks in every machine ---- */
+  .n-idle  circle, .n-idle  rect { fill: var(--surface); stroke: var(--line);       stroke-width: 3; }
+  .n-seen  circle, .n-seen  rect { fill: var(--code-bg); stroke: var(--muted);      stroke-width: 3; }
+  .n-look  circle, .n-look  rect { fill: var(--vz-look-soft); stroke: var(--vz-look); stroke-width: 4; }
+  .n-lock  circle, .n-lock  rect { fill: var(--vz-lock); stroke: var(--accent-deep); stroke-width: 3; }
+  .n-path  circle, .n-path  rect { fill: var(--vz-path); stroke: var(--purple-deep); stroke-width: 3; }
+  .n-drop  circle, .n-drop  rect { fill: var(--vz-drop-soft); stroke: var(--vz-drop); stroke-width: 3; }
+  .n-empty circle, .n-empty rect { fill: transparent; stroke: var(--line); stroke-width: 2; stroke-dasharray: 4 4; }
+  .n-ghost circle, .n-ghost rect { fill: var(--surface); stroke: var(--line); stroke-width: 2; opacity: .28; }
+  .n-lock .vz-label, .n-path .vz-label { fill: #fff; }
+  .n-ghost .vz-label { opacity: .3; }
+  .n-drop .vz-label { fill: var(--bad-deep); }
+  .n-look .vz-label { fill: var(--ink); }
+
+  .e-idle line { stroke: var(--line); }
+  .e-look line { stroke: var(--vz-look); }
+  .e-path line { stroke: var(--vz-path); }
+  .e-drop line { stroke: var(--vz-drop); opacity: .35; }
+  .vz-w.hot { fill: var(--gold); font-weight: 900; font-size: 13px; }
+
 </style>
 </head>
 <body>
@@ -1257,9 +1459,838 @@ function wireStatbar() {
   });
 }
 
+
+/* ===================== PLAYGROUND =====================
+   Every machine is a list of pre-computed frames. The player just
+   indexes into that list, so scrubbing backwards is free and the SVG
+   elements (keyed by a stable id) glide between frames on their own. */
+
+const NS = "http://www.w3.org/2000/svg";
+const PG = { m: null, frames: [], i: 0, playing: false, timer: null, speed: 1, els: null, seen: null, opts: {} };
+const SPEEDS = [0.5, 1, 2];
+
+function mk(tag, attrs) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function pick(layer, id, tag) {
+  let e = PG.els.get(id);
+  if (!e) {
+    e = document.createElementNS(NS, tag);
+    PG.els.set(id, e);
+    PG.layers[layer].appendChild(e);
+    if (!RM) e.classList.add("vz-in");
+  }
+  PG.seen.add(id);
+  return e;
+}
+function sweep() {
+  PG.els.forEach((e, id) => { if (!PG.seen.has(id)) { e.remove(); PG.els.delete(id); } });
+}
+/* a circle-with-label that keeps its identity across frames, so a node
+   promoted by an AVL rotation visibly travels to its new home */
+function orb(layer, id, x, y, r, label, cls, sub) {
+  const g = pick(layer, id, "g");
+  if (!g.firstChild) {
+    g.appendChild(mk("circle", { r: r }));
+    g.appendChild(mk("text", { class: "vz-label", "text-anchor": "middle", dy: "0.34em" }));
+    g.appendChild(mk("text", { class: "vz-num", "text-anchor": "middle" }));
+  }
+  g.setAttribute("class", "vz-node " + (cls || "n-idle"));
+  g.style.transform = "translate(" + x + "px," + y + "px)";
+  g.children[0].setAttribute("r", r);
+  g.children[2].setAttribute("y", -(r + 7));   /* clear of the circle, not on top of it */
+  g.children[1].textContent = label;
+  g.children[2].textContent = sub == null ? "" : sub;
+  return g;
+}
+function cell(layer, id, x, y, w, h, label, cls, sub) {
+  const g = pick(layer, id, "g");
+  if (!g.firstChild) {
+    g.appendChild(mk("rect", { rx: 8 }));
+    g.appendChild(mk("text", { class: "vz-label", "text-anchor": "middle", dy: "0.34em" }));
+    g.appendChild(mk("text", { class: "vz-num", "text-anchor": "middle" }));
+  }
+  g.setAttribute("class", "vz-cell " + (cls || "n-idle"));
+  g.style.transform = "translate(" + x + "px," + y + "px)";
+  const r = g.children[0];
+  r.setAttribute("width", w); r.setAttribute("height", h);
+  g.children[1].setAttribute("x", w / 2); g.children[1].setAttribute("y", h / 2);
+  g.children[1].textContent = label;
+  const s = g.children[2];
+  s.setAttribute("x", w / 2); s.setAttribute("y", h + 13);
+  s.textContent = sub == null ? "" : sub;
+  return g;
+}
+function link(id, x1, y1, x2, y2, cls, w) {
+  const g = pick("edge", id, "g");
+  if (!g.firstChild) g.appendChild(mk("line", { "stroke-linecap": "round" }));
+  g.setAttribute("class", "vz-edge " + (cls || "e-idle"));
+  const l = g.children[0];
+  l.setAttribute("x1", x1); l.setAttribute("y1", y1);
+  l.setAttribute("x2", x2); l.setAttribute("y2", y2);
+  l.setAttribute("stroke-width", w || 3);
+  return g;
+}
+function tag(id, x, y, text, cls) {
+  const t = pick("edge", id, "text");
+  t.setAttribute("class", cls || "vz-w");
+  t.setAttribute("text-anchor", "middle");
+  t.setAttribute("x", x); t.setAttribute("y", y);
+  t.textContent = text;
+  return t;
+}
+
+/* ---------------- shape renderers ---------------- */
+
+const DG = {
+  pos: { a: [44, 56], b: [172, 44], c: [304, 70], d: [64, 168], e: [190, 156], f: [308, 198] },
+  edges: [["a", "b", 7], ["a", "d", 5], ["b", "d", 9], ["b", "e", 7], ["c", "e", 5],
+          ["c", "f", 6], ["d", "e", 15], ["d", "f", 6], ["e", "f", 8]],
+};
+function drawGraph(f) {
+  DG.edges.forEach(([u, v, w], i) => {
+    const [x1, y1] = DG.pos[u], [x2, y2] = DG.pos[v];
+    const onPath = f.tree && (f.tree[v] === u || f.tree[u] === v);
+    const hot = f.edge && ((f.edge[0] === u && f.edge[1] === v) || (f.edge[0] === v && f.edge[1] === u));
+    link("e" + i, x1, y1, x2, y2, hot ? "e-look" : onPath ? "e-path" : "e-idle", hot ? 6 : onPath ? 5 : 3);
+    tag("w" + i, (x1 + x2) / 2, (y1 + y2) / 2 - 4, w, hot ? "vz-w hot" : "vz-w");
+  });
+  for (const id in DG.pos) {
+    const [x, y] = DG.pos[id];
+    const d = f.dist[id];
+    orb("node", "n" + id, x, y, 21, id.toUpperCase(),
+      f.settled.includes(id) ? "n-lock" : id === f.cur ? "n-look" : d < Infinity ? "n-seen" : "n-idle",
+      d === Infinity ? "∞" : d);
+  }
+}
+
+function layoutBST(nodes, root, W, H) {
+  const pos = {}; let n = 0, deep = 0;
+  (function walk(id, d) {
+    if (id == null) return;
+    walk(nodes[id].l, d + 1);
+    pos[id] = { ix: n++, d: d };
+    deep = Math.max(deep, d);
+    walk(nodes[id].r, d + 1);
+  })(root, 0);
+  const gap = Math.min(46, (W - 56) / Math.max(1, n - 1));
+  const x0 = (W - gap * (n - 1)) / 2;
+  /* squeeze the rows when the tree runs deep — a sorted insert order
+     builds a 6-level chain that would otherwise fall off the stage */
+  const rowH = Math.min(52, (H - 74) / Math.max(1, deep));
+  for (const id in pos) { pos[id].x = x0 + pos[id].ix * gap; pos[id].y = 42 + pos[id].d * rowH; }
+  return pos;
+}
+function drawTree(f) {
+  const pos = layoutBST(f.nodes, f.root, 360, 260);
+  for (const id in f.nodes) {
+    const nd = f.nodes[id], p = pos[id];
+    if (!p) continue;
+    ["l", "r"].forEach(side => {
+      const c = nd[side];
+      if (c != null && pos[c]) link("t" + id + side, p.x, p.y, pos[c].x, pos[c].y,
+        f.hi[c] === "path" || f.hi[id] === "path" ? "e-path" : "e-idle", 3);
+    });
+  }
+  for (const id in f.nodes) {
+    const p = pos[id];
+    if (!p) continue;
+    const h = f.hi[id];
+    orb("node", "b" + id, p.x, p.y, 18, f.nodes[id].v,
+      h === "look" ? "n-look" : h === "lock" ? "n-lock" : h === "path" ? "n-path" : h === "drop" ? "n-drop" : "n-idle",
+      f.bal && f.bal[id] != null ? f.bal[id] : null);
+  }
+}
+
+function drawHeap(f) {
+  const a = f.arr, W = 360;
+  const px = i => { const d = Math.floor(Math.log2(i + 1)), lv = Math.pow(2, d); return 16 + (W - 32) * ((i - (lv - 1)) + 0.5) / lv; };
+  const py = i => 28 + Math.floor(Math.log2(i + 1)) * 42;
+  a.forEach((v, i) => {
+    if (i > 0) link("h" + i, px((i - 1) >> 1), py((i - 1) >> 1), px(i), py(i), "e-idle", 3);
+    orb("node", "hn" + i, px(i), py(i), 17, v, f.hi[i] || "n-idle");
+  });
+  const cw = Math.min(40, (W - 24) / Math.max(1, a.length)), x0 = (W - cw * a.length) / 2;
+  tag("acap", W / 2, 196, "SAME HEAP, AS A FLAT ARRAY", "vz-cap");
+  a.forEach((v, i) => cell("node", "hc" + i, x0 + i * cw, 206, cw - 4, 30, v, f.hi[i] || "n-idle", i));
+}
+
+function drawBars(f) {
+  const a = f.arr, W = 360, n = a.length;
+  const bw = Math.min(46, (W - 30) / n), x0 = (W - bw * n) / 2;
+  const mx = Math.max(...a, 1);
+  a.forEach((v, i) => {
+    const h = 30 + (v / mx) * 140;
+    const g = pick("node", "sb" + i, "g");
+    if (!g.firstChild) {
+      g.appendChild(mk("rect", { rx: 7 }));
+      g.appendChild(mk("text", { class: "vz-label", "text-anchor": "middle", dy: "0.34em" }));
+      g.appendChild(mk("text", { class: "vz-num", "text-anchor": "middle" }));
+    }
+    g.setAttribute("class", "vz-bar " + (f.hi[i] || "n-idle"));
+    g.style.transform = "translate(" + (x0 + i * bw) + "px," + (192 - h) + "px)";
+    const r = g.children[0];
+    r.setAttribute("width", bw - 5); r.setAttribute("height", h);
+    g.children[1].setAttribute("x", (bw - 5) / 2); g.children[1].setAttribute("y", h - 14);
+    g.children[1].textContent = v;
+    g.children[2].setAttribute("x", (bw - 5) / 2); g.children[2].setAttribute("y", h + 16);
+    g.children[2].textContent = i;
+  });
+  if (f.span) {
+    const [i, j] = f.span;
+    link("sp", x0 + i * bw + bw / 2 - 2, 210, x0 + j * bw + bw / 2 - 2, 210, "e-look", 5);
+  }
+}
+
+function drawSlots(f) {
+  const W = 360, rowH = 30;
+  for (let s = 0; s < 7; s++) {
+    const y = 16 + s * rowH;
+    cell("node", "sl" + s, 14, y, 40, rowH - 5, f.slots[s] == null ? "" : f.slots[s],
+      f.hi[s] || (f.slots[s] == null ? "n-empty" : "n-idle"), null);
+    tag("sn" + s, 8, y + 18, s, "vz-cap");
+    /* probing only: show which slot this key actually wanted */
+    const k = f.slots[s];
+    if (!f.chains && k != null && f.homes && f.homes[k] !== s) {
+      tag("hm" + s, 118, y + 17, "wanted slot " + f.homes[k] + " — pushed along", "vz-cap");
+    }
+    if (f.chains) {
+      (f.chains[s] || []).forEach((k, ci) => {
+        cell("node", "ch" + s + "_" + ci, 68 + ci * 52, y, 44, rowH - 5, k,
+          f.hiChain === s + ":" + ci ? "n-look" : "n-idle", null);
+        link("cl" + s + "_" + ci, 58 + ci * 52, y + (rowH - 5) / 2, 68 + ci * 52, y + (rowH - 5) / 2, "e-idle", 3);
+      });
+    }
+  }
+}
+
+function drawMatrix(f) {
+  const N = f.m.length, W = 360, cw = 62, x0 = (W - cw * N) / 2 + 14, y0 = 40;
+  f.m.forEach((row, i) => {
+    tag("mr" + i, x0 - 12, y0 + i * 40 + 20, f.names[i], "vz-cap");
+    row.forEach((v, j) => {
+      if (i === 0) tag("mc" + j, x0 + j * cw + cw / 2 - 2, y0 - 10, f.names[j], "vz-cap");
+      let cls = "n-idle";
+      if (f.hot && f.hot[0] === i && f.hot[1] === j) cls = f.better ? "n-lock" : "n-look";
+      else if (f.k != null && (i === f.k || j === f.k)) cls = "n-seen";
+      cell("node", "m" + i + "_" + j, x0 + j * cw, y0 + i * 40, cw - 5, 34,
+        v === Infinity ? "∞" : v === 0 && f.wide ? "–" : v, cls);
+    });
+  });
+}
+
+function drawCalls(f) {
+  f.nodes.forEach(n => {
+    if (n.p != null) {
+      const p = f.nodes[n.p];
+      link("ck" + n.id, p.x, p.y, n.x, n.y, n.cls === "n-drop" ? "e-drop" : "e-idle", 2);
+    }
+  });
+  f.nodes.forEach(n => orb("node", "cn" + n.id, n.x, n.y, f.r, n.lab, n.cls));
+  if (f.table) {
+    const cw = Math.min(40, 330 / f.table.length), x0 = (360 - cw * f.table.length) / 2;
+    tag("tcap", 180, 214, "DP TABLE — EACH BOX FILLED ONCE", "vz-cap");
+    f.table.forEach((v, i) => cell("node", "tc" + i, x0 + i * cw, 224, cw - 4, 30,
+      v == null ? "" : v, f.thi === i ? "n-look" : v == null ? "n-empty" : "n-lock", i));
+  }
+}
+
+const SHAPES = { graph: drawGraph, tree: drawTree, heap: drawHeap, bars: drawBars, slots: drawSlots, matrix: drawMatrix, calls: drawCalls };
+
+/* ---------------- machines ---------------- */
+
+function mDijkstra(o) {
+  const src = o.src || "a", F = [];
+  const dist = {}, settled = [], tree = {};
+  for (const id in DG.pos) dist[id] = Infinity;
+  dist[src] = 0;
+  const snap = (say, extra) => F.push(Object.assign({
+    dist: Object.assign({}, dist), settled: settled.slice(), tree: Object.assign({}, tree),
+    cur: null, edge: null, say: say,
+  }, extra || {}));
+  snap("Start at <b>" + src.toUpperCase() + "</b>, so its distance is <b>0</b>. Everywhere else is <b>∞</b> — not 'far away', but <b>not reached yet</b>.");
+  while (settled.length < Object.keys(DG.pos).length) {
+    let u = null;
+    for (const id in dist) if (!settled.includes(id) && dist[id] < Infinity && (u === null || dist[id] < dist[u])) u = id;
+    if (u === null) break;
+    snap("Closest unfinished node is <b>" + u.toUpperCase() + "</b> at <b>" + dist[u] + "</b>. Nothing can beat that any more, so I <b>lock it in</b> — that is the whole idea of Dijkstra.", { cur: u });
+    settled.push(u);
+    const nbrs = DG.edges.filter(e => e[0] === u || e[1] === u);
+    for (const [x, y, w] of nbrs) {
+      const v = x === u ? y : x;
+      if (settled.includes(v)) continue;
+      const via = dist[u] + w;
+      const old = dist[v];
+      if (via < old) {
+        dist[v] = via; tree[v] = u;
+        snap("Via <b>" + u.toUpperCase() + "</b>, node <b>" + v.toUpperCase() + "</b> costs " + dist[u] + " + " + w + " = <b>" + via + "</b>" +
+          (old === Infinity ? " — its first real route." : ", beating the old " + old + ". Better route found."), { cur: u, edge: [u, v] });
+      } else {
+        snap("Via <b>" + u.toUpperCase() + "</b>, node <b>" + v.toUpperCase() + "</b> would cost " + dist[u] + " + " + w + " = " + via + ", which loses to <b>" + old + "</b>. Keep what I had.", { cur: u, edge: [u, v] });
+      }
+    }
+  }
+  snap("Done. Every node is locked in, and the purple edges are the <b>shortest-path tree</b> — one route back to " + src.toUpperCase() + " from anywhere.", { done: true });
+  return {
+    shape: "graph", frames: F, vb: "0 0 360 240",
+    reads: f => [["lock", f.settled.length + "/6", "locked in"], ["look", f.dist[f.cur] === undefined || f.cur === null ? "–" : f.dist[f.cur], "settling"]],
+    note: "This is the same network you meet in the quiz. Watch the <b>settle order</b>: A, D, B, F, E, C — always increasing distance. If your exam trace settles 14 before 11, you have slipped.",
+  };
+}
+
+function mBST(o) {
+  const seq = o.seq || [8, 3, 10, 1, 6, 14, 4, 7, 13];
+  const nodes = {}; let root = null; const F = [];
+  const snap = (say, hi) => F.push({ nodes: JSON.parse(JSON.stringify(nodes)), root: root, hi: hi || {}, say: say });
+  snap("An empty tree. The rule never changes: <b>smaller goes left, bigger goes right</b>.");
+  for (const v of seq) {
+    if (root === null) {
+      nodes[v] = { v: v, l: null, r: null }; root = v;
+      snap("<b>" + v + "</b> is the first value, so it becomes the root.", { [v]: "lock" });
+      continue;
+    }
+    let cur = root, path = [];
+    while (true) {
+      path.push(cur);
+      const hi = {}; path.forEach(p => hi[p] = "path"); hi[cur] = "look";
+      snap("Placing <b>" + v + "</b>: compare with <b>" + cur + "</b>. " + (v < cur ? v + " is smaller, so go <b>left</b>." : v + " is bigger, so go <b>right</b>."), hi);
+      const side = v < cur ? "l" : "r";
+      if (nodes[cur][side] == null) {
+        nodes[cur][side] = v; nodes[v] = { v: v, l: null, r: null };
+        const hi2 = {}; path.forEach(p => hi2[p] = "path"); hi2[v] = "lock";
+        snap("Empty slot — <b>" + v + "</b> lands here. Notice it only took " + path.length + " comparison" + (path.length > 1 ? "s" : "") + ": that is why a <b>balanced</b> tree searches in log n.", hi2);
+        break;
+      }
+      cur = nodes[cur][side];
+    }
+  }
+  snap("Finished. Read the tree <b>left → node → right</b> and the values come out in sorted order — every time. That is an in-order traversal.", {});
+  return {
+    shape: "tree", frames: F, vb: "0 0 360 260",
+    reads: f => [["lock", Object.keys(f.nodes).length, "nodes"]],
+    note: "A plain BST has no balance rule. Flip between the two presets: sorted input collapses the tree into a <b>straight chain</b>, where search decays from Θ(log n) to <b>Θ(n)</b>. That is the problem AVL exists to solve.",
+  };
+}
+
+function mAVL(o) {
+  const seq = o.seq || [3, 6, 10, 9, 8, 7];
+  let nodes = {}, root = null;
+  const F = [];
+  const H = id => id == null ? -1 : 1 + Math.max(H(nodes[id].l), H(nodes[id].r));
+  const bal = () => { const b = {}; for (const id in nodes) b[id] = H(nodes[id].l) - H(nodes[id].r); return b; };
+  const snap = (say, hi) => F.push({ nodes: JSON.parse(JSON.stringify(nodes)), root: root, hi: hi || {}, bal: bal(), say: say });
+  snap("Same as a BST, plus <b>one extra rule</b>: at every node, the left and right heights may differ by at most 1. The small number above each node is that difference.");
+  for (const v of seq) {
+    if (root === null) { nodes[v] = { v: v, l: null, r: null }; root = v; snap("<b>" + v + "</b> becomes the root.", { [v]: "lock" }); continue; }
+    let cur = root; const path = [];
+    while (true) {
+      path.push(cur);
+      const side = v < cur ? "l" : "r";
+      if (nodes[cur][side] == null) { nodes[cur][side] = v; nodes[v] = { v: v, l: null, r: null }; break; }
+      cur = nodes[cur][side];
+    }
+    const hi = {}; path.forEach(p => hi[p] = "path"); hi[v] = "lock";
+    snap("Insert <b>" + v + "</b> exactly like a BST — walk down, drop it in the gap.", hi);
+    /* walk back up looking for the first node that broke the rule */
+    for (let k = path.length - 1; k >= 0; k--) {
+      const id = path[k], b = H(nodes[id].l) - H(nodes[id].r);
+      if (Math.abs(b) <= 1) continue;
+      const heavy = b > 1 ? "l" : "r";
+      const child = nodes[id][heavy];
+      const cb = H(nodes[child].l) - H(nodes[child].r);
+      const zig = (b > 1 && cb < 0) || (b < -1 && cb > 0);
+      snap("Node <b>" + id + "</b> is now off by " + Math.abs(b) + " — too far. The trouble path is <b>" + id + " → " + child + " → " + v + "</b>, which is " +
+        (zig ? "a <b>zig-zag</b>, so it needs a <b>double</b> rotation." : "a <b>straight line</b>, so one <b>single</b> rotation fixes it."),
+        { [id]: "look", [child]: "path", [v]: "path" });
+      const three = [id, child, v].sort((p, q) => p - q);
+      const mid = three[1];
+      snap("Shortcut that always works: of those three values <b>" + three.join(", ") + "</b>, the <b>middle one (" + mid + ")</b> becomes the new local root, and the other two become its children.",
+        { [mid]: "lock", [three[0]]: "path", [three[2]]: "path" });
+      /* rebuild the little subtree: middle on top */
+      const sub = rotFix(nodes, id, heavy, zig);
+      const par = path[k - 1];
+      if (par == null) root = sub; else nodes[par][nodes[par].l === id ? "l" : "r"] = sub;
+      snap("Rotated. <b>" + sub + "</b> is on top, the tree is balanced again, and it is still a correct BST — left is smaller, right is bigger.", { [sub]: "lock" });
+      break;
+    }
+  }
+  snap("Every insert stayed within one rotation. That is the AVL promise: height stays <b>Θ(log n)</b>, so search, insert and delete are all <b>O(log n)</b> — no matter what order the data arrives in.", {});
+  return {
+    shape: "tree", frames: F, vb: "0 0 360 260",
+    reads: f => [["lock", f.root, "root"], ["look", Math.max(...Object.values(f.bal).map(Math.abs)), "worst tilt"]],
+    note: "The numbers above the nodes are <b>left height − right height</b>. AVL keeps every one of them in {−1, 0, +1}. Compare with the plain BST machine on the same values.",
+  };
+}
+/* rotate the subtree rooted at id; returns the new subtree root */
+function rotFix(nodes, id, heavy, zig) {
+  const other = heavy === "l" ? "r" : "l";
+  if (zig) {
+    const c = nodes[id][heavy], gc = nodes[c][other];
+    nodes[c][other] = nodes[gc][heavy];
+    nodes[gc][heavy] = c;
+    nodes[id][heavy] = gc;
+  }
+  const c = nodes[id][heavy];
+  nodes[id][heavy] = nodes[c][other];
+  nodes[c][other] = id;
+  return c;
+}
+
+function mHeap(o) {
+  const mode = o.mode || "build";
+  const F = [];
+  let a = [];
+  const snap = (say, hi) => F.push({ arr: a.slice(), hi: hi || {}, say: say });
+  const swap = (i, j) => { const t = a[i]; a[i] = a[j]; a[j] = t; };
+  if (mode === "insert") {
+    a = [4, 8, 16, 15, 42, 23];
+    snap("A valid <b>min-heap</b>: every parent is smaller than its children. Watch what inserting <b>2</b> does.");
+    a.push(2);
+    let i = a.length - 1;
+    snap("New value goes in the <b>next free slot</b> — slot " + i + " — to keep the shape compact. The heap rule is broken there, so now I fix it.", { [i]: "n-look" });
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (a[p] <= a[i]) { snap("Parent <b>" + a[p] + "</b> is already smaller than <b>" + a[i] + "</b>. Nothing left to fix — done.", { [i]: "n-lock", [p]: "n-seen" }); break; }
+      snap("Parent <b>" + a[p] + "</b> is bigger than <b>" + a[i] + "</b>, which breaks the rule. <b>Swap them</b> — the new value bubbles up.", { [i]: "n-look", [p]: "n-look" });
+      swap(i, p); i = p;
+      snap("Swapped. Value <b>" + a[i] + "</b> is now in slot " + i + ".", { [i]: "n-lock" });
+    }
+    if (i === 0) snap("It travelled all the way to the root, so <b>2</b> is the new minimum. At most <b>log n</b> swaps — the height of the tree.", { 0: "n-lock" });
+  } else if (mode === "extract") {
+    a = [4, 8, 16, 15, 42, 23];
+    snap("Removing the minimum from a min-heap. The answer is always sitting at the <b>root</b>: <b>4</b>.", { 0: "n-look" });
+    snap("But I cannot just delete the root — that leaves a hole. Instead the <b>last</b> element (<b>23</b>) moves up to fill it.", { 0: "n-look", 5: "n-look" });
+    a[0] = a[a.length - 1]; a.pop();
+    snap("Now <b>23</b> sits on top and almost certainly breaks the rule. It has to <b>sink down</b>.", { 0: "n-look" });
+    let i = 0;
+    while (true) {
+      const l = 2 * i + 1, r = 2 * i + 2;
+      let s = i;
+      if (l < a.length && a[l] < a[s]) s = l;
+      if (r < a.length && a[r] < a[s]) s = r;
+      if (s === i) { snap("Both children are bigger than <b>" + a[i] + "</b>, so it has found its home. Heap restored.", { [i]: "n-lock" }); break; }
+      snap("Children are <b>" + a[l] + "</b>" + (r < a.length ? " and <b>" + a[r] + "</b>" : "") + ". Always swap with the <b>smaller child</b> (<b>" + a[s] + "</b>) — swapping with the bigger one would just break the rule again.", { [i]: "n-look", [s]: "n-look" });
+      swap(i, s); i = s;
+    }
+    snap("Final array <b>[" + a.join(", ") + "]</b>. One delete costs the height of the tree: <b>O(log n)</b>.", {});
+  } else {
+    a = [9, 4, 7, 1, 8, 2, 6, 3];
+    snap("Eight jumbled values. Turning this into a heap looks like it should cost n log n — watch what it <b>actually</b> costs.");
+    const last = (a.length >> 1) - 1;
+    snap("Everything from slot " + (last + 1) + " onwards is a <b>leaf</b> — no children, nothing to sink into. That is <b>half the array already finished</b>, for free.",
+      Object.fromEntries(a.map((_, i) => [i, i > last ? "n-lock" : "n-idle"])));
+    let swaps = 0;
+    for (let st = last; st >= 0; st--) {
+      snap("Now sift down slot <b>" + st + "</b> (value <b>" + a[st] + "</b>). Nodes near the bottom can only fall a step or two.", { [st]: "n-look" });
+      let i = st;
+      while (true) {
+        const l = 2 * i + 1, r = 2 * i + 2;
+        let s = i;
+        if (l < a.length && a[l] < a[s]) s = l;
+        if (r < a.length && a[r] < a[s]) s = r;
+        if (s === i) break;
+        swap(i, s); swaps++; i = s;
+        snap("Swap with the smaller child. Total swaps so far: <b>" + swaps + "</b>.", { [i]: "n-look" });
+      }
+    }
+    snap("Done in <b>" + swaps + " swaps</b> for 8 items — nowhere near n log n. Half the nodes never moved, a quarter moved at most once, and only the root could fall the full height. That series adds up to about n, so <b>make-heap is Θ(n)</b>.",
+      Object.fromEntries(a.map((_, i) => [i, "n-lock"])));
+  }
+  return {
+    shape: "heap", frames: F, vb: "0 0 360 252",
+    reads: f => [["lock", f.arr[0], "at the root"], ["look", f.arr.length, "items"]],
+    note: "The tree and the row of boxes are <b>the same thing</b>. Slot k's children live at <b>2k+1</b> and <b>2k+2</b>; its parent at <b>⌊(k−1)/2⌋</b>. Every heap question in the exam runs on those three formulas.",
+  };
+}
+
+function mSort(o) {
+  const algo = o.algo || "insertion";
+  const base = [4, 2, 6, 1, 0, 3];
+  let a = base.slice();
+  const F = [];
+  let swaps = 0, comps = 0;
+  const snap = (say, hi, span) => F.push({ arr: a.slice(), hi: hi || {}, say: say, swaps: swaps, comps: comps, span: span });
+  const swap = (i, j) => { const t = a[i]; a[i] = a[j]; a[j] = t; swaps++; };
+  if (algo === "insertion") {
+    snap("Insertion sort — exactly how you sort cards in your hand. It only ever swaps <b>neighbours</b>.");
+    for (let i = 1; i < a.length; i++) {
+      snap("Pick up <b>" + a[i] + "</b> and slide it left until it fits.", { [i]: "n-look" });
+      let j = i;
+      while (j > 0) {
+        comps++;
+        if (a[j - 1] <= a[j]) { snap("<b>" + a[j - 1] + "</b> is not bigger than <b>" + a[j] + "</b>, so it is already in place.", { [j]: "n-lock", [j - 1]: "n-seen" }); break; }
+        snap("<b>" + a[j - 1] + "</b> beats <b>" + a[j] + "</b> — wrong order, so swap. Each swap fixes exactly <b>one inversion</b>.", { [j]: "n-look", [j - 1]: "n-look" });
+        swap(j - 1, j); j--;
+      }
+    }
+    snap("Sorted in <b>" + swaps + " swaps</b>. That number is not a coincidence: it is exactly the number of <b>inversions</b> the array started with.",
+      Object.fromEntries(a.map((_, i) => [i, "n-lock"])));
+  } else {
+    snap("Shell sort — same idea, but it first swaps items <b>far apart</b>, so one swap can fix several inversions at once.");
+    for (const gap of [3, 1]) {
+      snap("Pass with stride <b>" + gap + "</b>: only compare items " + gap + " apart" + (gap === 1 ? " — this last pass is just plain insertion sort, but the array is nearly sorted by now." : "."), {});
+      for (let i = gap; i < a.length; i++) {
+        let j = i;
+        while (j >= gap) {
+          comps++;
+          if (a[j - gap] <= a[j]) break;
+          snap("<b>" + a[j - gap] + "</b> beats <b>" + a[j] + "</b> across a distance of " + gap + " — swap them.", { [j]: "n-look", [j - gap]: "n-look" }, [j - gap, j]);
+          swap(j - gap, j); j -= gap;
+        }
+      }
+    }
+    snap("Sorted in <b>" + swaps + " swaps</b> — fewer than insertion sort's 10 on the same array, because the long-distance swaps each fixed more than one inversion.",
+      Object.fromEntries(a.map((_, i) => [i, "n-lock"])));
+  }
+  return {
+    shape: "bars", frames: F, vb: "0 0 360 220",
+    reads: f => [["drop", f.swaps, "swaps"], ["look", f.comps, "comparisons"]],
+    note: "Run both on this same array <b>[4, 2, 6, 1, 0, 3]</b>: insertion sort needs <b>10</b> swaps, Shell needs <b>6</b>. It is the identical array from the mock paper.",
+  };
+}
+
+function mHash(o) {
+  const how = o.how || "chain";
+  const keys = [13, 14, 18, 7, 1, 5, 77];
+  const F = [];
+  const slots = new Array(7).fill(null), chains = {}, homes = {};
+  let probes = 0;
+  const snap = (say, hi, hiChain) => F.push({
+    slots: slots.slice(), chains: how === "chain" ? JSON.parse(JSON.stringify(chains)) : null,
+    homes: Object.assign({}, homes),
+    hi: hi || {}, hiChain: hiChain, say: say, probes: probes,
+  });
+  snap("Seven slots and the hash function <b>h(k) = k mod 7</b> — the remainder after dividing by 7. That one division tells me where to look, with no searching at all.");
+  for (const k of keys) {
+    const home = k % 7;
+    homes[k] = home;
+    snap("Key <b>" + k + "</b>: " + k + " mod 7 = <b>" + home + "</b>. That is its home slot.", { [home]: "n-look" });
+    if (how === "chain") {
+      chains[home] = chains[home] || [];
+      if (slots[home] == null && chains[home].length === 0) {
+        slots[home] = k;
+        snap("Slot " + home + " was empty, so <b>" + k + "</b> lives there.", { [home]: "n-lock" });
+      } else {
+        chains[home].push(k);
+        snap("Slot " + home + " is taken — a <b>collision</b>. With chaining I just hang <b>" + k + "</b> on the end of that slot's little list. Nobody gets displaced.", { [home]: "n-look" }, home + ":" + (chains[home].length - 1));
+      }
+    } else {
+      let s = home, steps = 0;
+      while (slots[s] != null) {
+        steps++;
+        snap("Slot " + s + " already holds <b>" + slots[s] + "</b>. Linear probing says: <b>step to the next slot</b> and try again.", { [s]: "n-drop" });
+        s = (s + 1) % 7;
+      }
+      slots[s] = k;
+      probes += steps + 1;   /* every slot inspected, including the one it lands in */
+      snap(steps === 0 ? "Slot " + s + " was free — <b>" + k + "</b> goes straight in. <b>1 look.</b>" :
+        "Free at last. <b>" + k + "</b> ends up in slot <b>" + s + "</b> — that is <b>" + (steps + 1) + " slots looked at</b>, counting its home. Notice it has now <b>stolen someone else's home slot</b>, which is how clustering snowballs.", { [s]: "n-lock" });
+    }
+  }
+  snap(how === "chain"
+    ? "All seven keys stored. Finding <b>77</b> means walking slot 0's chain: 14, then 7, then 77 — <b>3 looks</b>."
+    : "All seven keys stored, but look at the damage: key <b>77</b> alone needed <b>4 looks</b> (slots 0, 1, 2, then 3). Probing is fast in an empty table and much worse as it fills.", {});
+  return {
+    shape: "slots", frames: F, vb: "0 0 360 225",
+    reads: f => [["drop", f.probes, "slots looked at"], ["lock", f.slots.filter(Boolean).length, "slots used"]],
+    note: "Same seven keys, two collision strategies. <b>Chaining</b> never displaces anybody and copes past a full table; <b>probing</b> stays in one array but keys steal each other's homes. Which wins is genuinely data-dependent.",
+  };
+}
+
+function mFloyd(o) {
+  const wide = o.wide === true;
+  const names = ["A", "B", "C", "D"];
+  const INF = Infinity;
+  const base = wide
+    ? [[0, 100, 0, 30], [100, 0, 56, 0], [0, 56, 0, 1000], [30, 0, 1000, 0]]
+    : [[0, 4, INF, 8], [4, 0, 3, INF], [INF, 3, 0, 2], [8, INF, 2, 0]];
+  const m = base.map(r => r.slice());
+  const F = [];
+  let improved = 0;
+  const snap = (say, extra) => F.push(Object.assign({
+    m: m.map(r => r.slice()), names: names, wide: wide, k: null, hot: null, better: false,
+    say: say, improved: improved,
+  }, extra || {}));
+  snap(wide
+    ? "Best <b>bandwidth</b> between every pair. A route is only as good as its <b>weakest link</b>, and I want the route whose weakest link is strongest. Start from the direct links."
+    : "Shortest path between <b>every</b> pair at once. Start with the direct edges only — <b>∞</b> means no direct link yet.");
+  for (let k = 0; k < 4; k++) {
+    snap("Now allow <b>" + names[k] + "</b> as a stopover. Every pair gets asked the same question: is going through " + names[k] + " better than what I already have?", { k: k });
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        if (i === j || i === k || j === k) continue;
+        const via = wide ? Math.min(m[i][k], m[k][j]) : m[i][k] + m[k][j];
+        const better = wide ? via > m[i][j] : via < m[i][j];
+        const viaTxt = wide
+          ? "min(" + m[i][k] + ", " + m[k][j] + ") = <b>" + via + "</b>"
+          : m[i][k] + " + " + m[k][j] + " = <b>" + (via === INF ? "∞" : via) + "</b>";
+        snap(names[i] + " → " + names[k] + " → " + names[j] + " costs " + viaTxt + ", against the current <b>" + (m[i][j] === INF ? "∞" : m[i][j]) + "</b>. " +
+          (better ? (wide ? "Wider — take it." : "Shorter — take it.") : "No better, keep what I had."), { k: k, hot: [i, j], better: better });
+        if (better) { m[i][j] = via; improved++; }
+      }
+    }
+  }
+  snap(wide
+    ? "Finished. Same three loops as shortest-path Floyd–Warshall — I only swapped <b>+ for min</b> and <b>min for max</b>. That two-operator swap is worth 6 marks."
+    : "Finished. Three nested loops over k, i, j — so <b>Θ(V³)</b>. Fine for hundreds of nodes, hopeless for 100,000.", { done: true });
+  return {
+    shape: "matrix", frames: F, vb: "0 0 360 220",
+    reads: f => [["look", f.k == null ? "–" : f.names[f.k], "stopover"], ["lock", f.improved, wide ? "routes widened" : "routes shortened"]],
+    note: wide
+      ? "Widest path: a chain of pipes carries only what its <b>skinniest</b> pipe allows, so you combine a route with <b>min</b> and choose between routes with <b>max</b>."
+      : "Watch the ∞ cells fill in as stopovers become available. Flip to <b>bandwidth</b> to see the same machine solve the mock's 20-mark question.",
+  };
+}
+
+function mFib(o) {
+  const n = o.n || 6, dp = o.dp === true;
+  const F = [];
+  if (dp) {
+    const table = new Array(n + 1).fill(null);
+    let adds = 0;
+    const nodes = [];
+    const snap = (say, thi) => F.push({ nodes: [], table: table.slice(), thi: thi, say: say, adds: adds, r: 14 });
+    snap("Bottom-up dynamic programming: no recursion at all, just a table filled <b>left to right</b>.");
+    table[0] = 1; snap("fib(0) = <b>1</b>, known outright.", 0);
+    if (n >= 1) { table[1] = 1; snap("fib(1) = <b>1</b>, also known outright. These two are the seeds.", 1); }
+    for (let i = 2; i <= n; i++) {
+      table[i] = table[i - 1] + table[i - 2]; adds++;
+      snap("fib(" + i + ") = fib(" + (i - 1) + ") + fib(" + (i - 2) + ") = " + table[i - 1] + " + " + table[i - 2] + " = <b>" + table[i] + "</b>. One addition, and the answer is stored so it is never computed twice.", i);
+    }
+    snap("fib(" + n + ") = <b>" + table[n] + "</b> in just <b>" + adds + " additions</b>. Each box is filled exactly once, so the whole thing is <b>Θ(n)</b>.", null);
+    return {
+      shape: "calls", frames: F, vb: "0 0 360 270",
+      reads: f => [["lock", f.adds, "additions"], ["look", f.table.filter(v => v != null).length, "boxes filled"]],
+      note: "Compare the counters with the naive version on the same n. Same answer, wildly different price — that is the whole point of dynamic programming.",
+    };
+  }
+  /* naive recursion: build the call tree, in call order, so the repeats are visible */
+  const nodes = []; let calls = 0, adds = 0;
+  let leafX = 0;
+  function build(k, depth, parent) {
+    const id = nodes.length;
+    nodes.push({ id: id, k: k, p: parent, d: depth, lab: k, cls: "n-idle", x: 0, y: 0 });
+    calls++;
+    if (k >= 2) { build(k - 1, depth + 1, id); build(k - 2, depth + 1, id); adds++; }
+    return id;
+  }
+  build(n, 0, null);
+  const leaves = nodes.filter(nd => nd.k < 2);
+  const W = 356, gap = Math.min(26, (W - 24) / Math.max(1, leaves.length - 1));
+  let li = 0;
+  const setX = id => {
+    const kids = nodes.filter(nd => nd.p === id);
+    if (!kids.length) { nodes[id].x = 12 + (li++) * gap; return nodes[id].x; }
+    const xs = kids.map(kd => setX(kd.id));
+    nodes[id].x = (Math.min(...xs) + Math.max(...xs)) / 2;
+    return nodes[id].x;
+  };
+  setX(0);
+  nodes.forEach(nd => nd.y = 22 + nd.d * 34);
+  /* mark every call whose value was already worked out earlier in the tree */
+  const seen = {}, dupes = new Set();
+  nodes.forEach((nd, i) => { if (seen[nd.k] != null) dupes.add(i); else seen[nd.k] = i; });
+  const r = Math.max(8, 13 - Math.floor(n / 2));
+  const F2 = [];
+  const shot = (upto, say) => F2.push({
+    nodes: nodes.map((nd, i) => Object.assign({}, nd, {
+      cls: i > upto ? "n-ghost" : i === upto ? "n-look" : dupes.has(i) ? "n-drop" : "n-lock",
+    })),
+    say: say, calls: upto + 1, waste: [...dupes].filter(d => d <= upto).length, r: r,
+  });
+  F2.push({ nodes: nodes.map(nd => Object.assign({}, nd, { cls: "n-ghost" })), calls: 0, waste: 0, r: r,
+    say: "Naive recursion for <b>fib(" + n + ")</b>: every call splits into fib(k−1) and fib(k−2), and each of those splits again. Step through and count." });
+  /* one frame per call, in the order the machine actually makes them */
+  nodes.forEach((nd, i) => {
+    const dup = dupes.has(i);
+    let say;
+    if (nd.k < 2) say = "<b>fib(" + nd.k + ") = 1</b> — a base case, so it returns straight away without splitting.";
+    else say = "<b>fib(" + nd.k + ")</b> cannot answer on its own, so it calls <b>fib(" + (nd.k - 1) + ")</b> and <b>fib(" + (nd.k - 2) + ")</b>.";
+    if (dup) say = "<b>fib(" + nd.k + ") again.</b> This exact value was already worked out elsewhere in the tree — but plain recursion has no memory, so the whole branch gets rebuilt from scratch. That is the waste, in coral.";
+    shot(i, say);
+  });
+  F2.push({ nodes: nodes.map((nd, i) => Object.assign({}, nd, { cls: dupes.has(i) ? "n-drop" : "n-lock" })),
+    calls: nodes.length, waste: dupes.size, r: r,
+    say: "<b>" + nodes.length + " calls</b> to answer one question. <b>" + dupes.size + "</b> of them were pure repeats. Add 1 to n and the tree roughly doubles — the cost sits <b>between (3/2)ⁿ and 2ⁿ</b>." });
+  return {
+    shape: "calls", frames: F2, vb: "0 0 360 " + Math.max(170, 34 + n * 34 + 26),
+    reads: f => [["drop", f.calls, "calls made"], ["look", f.waste, "wasted repeats"]],
+    note: "Now switch to <b>DP table</b> at the same n, and compare the counters. The tree's calls explode as n grows; the table always needs just <b>n additions</b>. Nothing about the maths changed — only that answers get written down instead of recomputed.",
+  };
+}
+
+/* ---------------- catalogue ---------------- */
+const MACHINES = [
+  { id: "dijkstra", emoji: "🗺️", title: "Dijkstra", sub: "Watch shortest paths lock in, one node at a time", u: 3, build: mDijkstra,
+    ctrls: [{ type: "pick", key: "src", label: "Start at", opts: [["a", "A"], ["d", "D"], ["c", "C"]] }] },
+  { id: "bst", emoji: "🌳", title: "Binary search tree", sub: "Smaller left, bigger right — and what goes wrong", u: 2, build: mBST,
+    ctrls: [{ type: "pick", key: "seq", label: "Insert", opts: [[[8, 3, 10, 1, 6, 14, 4, 7, 13], "Balanced-ish"], [[1, 2, 3, 4, 5, 6], "Sorted 1…6 💀"]] }] },
+  { id: "avl", emoji: "🌲", title: "AVL rotations", sub: "The tree that refuses to get lopsided", u: 2, build: mAVL,
+    ctrls: [{ type: "pick", key: "seq", label: "Insert", opts: [[[3, 6, 10, 9, 8, 7], "3,6,10,9,8,7"], [[1, 2, 3, 4, 5, 6], "Sorted 1…6"]] }] },
+  { id: "heap", emoji: "⛰️", title: "Heaps", sub: "Tree and array are the same thing", u: 2, build: mHeap,
+    ctrls: [{ type: "pick", key: "mode", label: "Show", opts: [["build", "Make-heap"], ["insert", "Insert"], ["extract", "Remove min"]] }] },
+  { id: "sort", emoji: "🃏", title: "Insertion vs Shell", sub: "Count the swaps and watch Shell win", u: 2, build: mSort,
+    ctrls: [{ type: "pick", key: "algo", label: "Algorithm", opts: [["insertion", "Insertion"], ["shell", "Shell"]] }] },
+  { id: "hash", emoji: "#️⃣", title: "Hash tables", sub: "Collisions, chains and clustering", u: 2, build: mHash,
+    ctrls: [{ type: "pick", key: "how", label: "Collisions", opts: [["chain", "Chaining"], ["probe", "Linear probing"]] }] },
+  { id: "floyd", emoji: "🌉", title: "Floyd–Warshall", sub: "All pairs at once — and the bandwidth twist", u: 3, build: mFloyd,
+    ctrls: [{ type: "pick", key: "wide", label: "Solving for", opts: [[false, "Shortest path"], [true, "Best bandwidth ⭐"]] }] },
+  { id: "fib", emoji: "🐇", title: "Fibonacci: naive vs DP", sub: "See the exponential blow-up, then kill it", u: 3, build: mFib,
+    ctrls: [
+      { type: "pick", key: "dp", label: "Method", opts: [[false, "Naive recursion"], [true, "DP table"]] },
+      { type: "pick", key: "n", label: "n =", opts: [[5, "5"], [6, "6"], [7, "7"]] },
+    ] },
+];
+
+/* ---------------- player ---------------- */
+
+function pgStop() { if (PG.timer) { clearTimeout(PG.timer); PG.timer = null; } PG.playing = false; }
+
+function renderPlayground() {
+  S = null; pgStop(); PG.m = null;
+  window.scrollTo(0, 0);
+  app.innerHTML = statbarHTML() + `
+  <div class="pg-head">
+    <button class="pg-back" id="pgback" aria-label="Back to levels">‹</button>
+    <div><div class="pg-title">🔬 Playground</div><div class="pg-sub">Watch the algorithms actually run</div></div>
+  </div>
+  <p class="pg-intro">Every machine steps through <b>the same examples the questions use</b>, narrating itself as it goes. Drag the scrubber to go back over any step.</p>
+  <div class="pg-grid">
+    ${MACHINES.map(m => `<button class="pg-card u${m.u}" data-m="${m.id}">
+      <span class="pc-emoji">${m.emoji}</span>
+      <span class="pc-title">${m.title}</span>
+      <span class="pc-sub">${m.sub}</span>
+    </button>`).join("")}
+  </div>
+  <div class="vz-key" style="margin-top:1.1rem">
+    <span><i></i> not reached</span><span><i class="look"></i> looking now</span>
+    <span><i class="lock"></i> locked in</span><span><i class="path"></i> the answer</span>
+  </div>
+  <p class="vz-note">Same colours in every machine, so once you can read one you can read them all.</p>`;
+  wireStatbar();
+  document.getElementById("pgback").addEventListener("click", renderHome);
+  app.querySelectorAll(".pg-card").forEach(b => b.addEventListener("click", () => { snd("pick"); openMachine(b.dataset.m); }));
+}
+
+function openMachine(id, keepOpts) {
+  const m = MACHINES.find(x => x.id === id);
+  PG.m = m;
+  if (!keepOpts) { PG.opts = {}; (m.ctrls || []).forEach(c => PG.opts[c.key] = c.opts[0][0]); }
+  const built = m.build(PG.opts);
+  PG.built = built;
+  PG.frames = built.frames;
+  PG.i = 0;
+  pgStop();
+  window.scrollTo(0, 0);
+
+  app.innerHTML = `
+  <div class="pg-head">
+    <button class="pg-back" id="pgback" aria-label="Back to the playground">‹</button>
+    <div><div class="pg-title">${m.emoji} ${m.title}</div><div class="pg-sub">${m.sub}</div></div>
+  </div>
+  <div class="vz-reads" id="vzreads"></div>
+  <div class="vz-stage"><svg viewBox="${built.vb}" role="img" aria-label="${m.title} visualisation">
+    <g id="vzedges"></g><g id="vznodes"></g>
+  </svg></div>
+  <div class="vz-say" id="vzsay"><span class="vs-emoji">${m.emoji}</span><span class="vs-text"></span></div>
+  <div class="vz-scrub">
+    <input type="range" id="vzrange" min="0" max="${PG.frames.length - 1}" value="0" aria-label="Step through the algorithm">
+    <span class="vz-step" id="vzstep"></span>
+  </div>
+  <div class="vz-transport">
+    <button class="vz-tbtn" id="vzfirst" aria-label="Back to the start">⏮</button>
+    <button class="vz-tbtn" id="vzprev" aria-label="Previous step">‹</button>
+    <button class="vz-tbtn play" id="vzplay">Play</button>
+    <button class="vz-tbtn" id="vznext" aria-label="Next step">›</button>
+    <button class="vz-tbtn speed" id="vzspeed" aria-label="Playback speed">1×</button>
+  </div>
+  <div class="vz-ctrls" id="vzctrls"></div>
+  <p class="vz-note">${built.note}</p>
+  <div class="spacer" style="height:2rem"></div>`;
+
+  PG.els = new Map();
+  PG.layers = { edge: document.getElementById("vzedges"), node: document.getElementById("vznodes") };
+
+  const ctrls = document.getElementById("vzctrls");
+  (m.ctrls || []).forEach((c, ci) => {
+    const wrap = document.createElement("div");
+    wrap.className = "vz-group";
+    wrap.innerHTML = `<span class="vz-glabel">${c.label}</span>` +
+      c.opts.map((o, oi) => `<button class="vz-chip ${JSON.stringify(PG.opts[c.key]) === JSON.stringify(o[0]) ? "on" : ""}" data-c="${ci}" data-o="${oi}">${o[1]}</button>`).join("");
+    ctrls.appendChild(wrap);
+  });
+  ctrls.querySelectorAll(".vz-chip").forEach(b => b.addEventListener("click", () => {
+    const c = m.ctrls[+b.dataset.c];
+    PG.opts[c.key] = c.opts[+b.dataset.o][0];
+    snd("pick");
+    openMachine(m.id, true);
+  }));
+
+  document.getElementById("pgback").addEventListener("click", renderPlayground);
+  document.getElementById("vzfirst").addEventListener("click", () => { pgPause(); pgGo(0); });
+  document.getElementById("vzprev").addEventListener("click", () => { pgPause(); pgGo(PG.i - 1); });
+  document.getElementById("vznext").addEventListener("click", () => { pgPause(); pgGo(PG.i + 1); });
+  document.getElementById("vzplay").addEventListener("click", pgToggle);
+  document.getElementById("vzspeed").addEventListener("click", function () {
+    PG.speed = SPEEDS[(SPEEDS.indexOf(PG.speed) + 1) % SPEEDS.length];
+    this.textContent = PG.speed + "×";
+    snd("pick");
+  });
+  const range = document.getElementById("vzrange");
+  range.addEventListener("input", () => { pgPause(); pgGo(+range.value, true); });
+
+  pgGo(0);
+}
+function pgGo(i, fromScrub) {
+  if (!PG.frames.length) return;
+  if (!document.getElementById("vzplay")) return pgStop();  /* navigated away mid-play */
+  PG.i = Math.max(0, Math.min(PG.frames.length - 1, i));
+  const f = PG.frames[PG.i];
+  PG.seen = new Set();
+  SHAPES[PG.built.shape](f);
+  sweep();
+
+  const say = document.getElementById("vzsay");
+  say.querySelector(".vs-text").innerHTML = f.say;
+  say.classList.toggle("done", PG.i === PG.frames.length - 1);
+  document.getElementById("vzstep").textContent = (PG.i + 1) + "/" + PG.frames.length;
+  if (!fromScrub) document.getElementById("vzrange").value = PG.i;
+  document.getElementById("vzprev").disabled = PG.i === 0;
+  document.getElementById("vznext").disabled = PG.i === PG.frames.length - 1;
+
+  const reads = PG.built.reads ? PG.built.reads(f) : null;
+  const box = document.getElementById("vzreads");
+  if (reads) {
+    box.style.display = "";
+    box.innerHTML = reads.map(([cls, num, lab]) =>
+      `<div class="vz-read ${cls}"><div class="vr-num">${num}</div><div class="vr-lab">${lab}</div></div>`).join("");
+  } else box.style.display = "none";
+}
+function pgPause() {
+  pgStop();
+  const b = document.getElementById("vzplay");
+  if (b) b.textContent = PG.i >= PG.frames.length - 1 ? "Replay" : "Play";
+}
+function pgToggle() {
+  if (PG.playing) { snd("pick"); return pgPause(); }
+  snd("pick");
+  if (PG.i >= PG.frames.length - 1) pgGo(0);
+  PG.playing = true;
+  document.getElementById("vzplay").textContent = "Pause";
+  const tick = () => {
+    if (!PG.playing) return;
+    if (PG.i >= PG.frames.length - 1) { PG.playing = false; snd("win"); return pgPause(); }
+    pgGo(PG.i + 1);
+    PG.timer = setTimeout(tick, 1150 / PG.speed);
+  };
+  PG.timer = setTimeout(tick, 260 / PG.speed);
+}
+
 /* ---------- HOME ---------- */
 function renderHome() {
-  S = null;
+  S = null; pgStop(); PG.m = null;
   if (!P.onboarded) {
     return renderCards(ONBOARDING, { skippable: true, goLabel: "Start Level 1", onDone: () => { P.onboarded = true; save(); startLesson({ mode: "level", idx: 0 }); } });
   }
@@ -1304,6 +2335,14 @@ function renderHome() {
       <div class="qc-sub">Five random questions. Two minutes, streak secured.</div>
     </div>
     <button class="btn" data-act="quick" ${cur === 0 ? "disabled" : ""}>Go</button>
+  </div>
+  <div class="quickcard" style="border-color:var(--gold); background:var(--gold-soft)">
+    <span class="qc-emoji">🔬</span>
+    <div class="qc-text">
+      <div class="qc-title">Playground</div>
+      <div class="qc-sub">Watch Dijkstra, AVL, heaps and five more actually run — step by step, narrated.</div>
+    </div>
+    <button class="btn" data-act="pg" style="background:var(--gold); border-bottom-color:#8a6712">Open</button>
   </div>`;
   let lastUnit = "";
   LEVELS.forEach((L, i) => {
@@ -1336,6 +2375,8 @@ function renderHome() {
   if (qb && !qb.disabled) qb.addEventListener("click", () => { snd("pick"); startLesson({ mode: "quick" }); });
   const sb = app.querySelector('[data-act="smart"]');
   if (sb && !sb.disabled) sb.addEventListener("click", () => { snd("pick"); startLesson({ mode: "smart" }); });
+  const pb = app.querySelector('[data-act="pg"]');
+  if (pb) pb.addEventListener("click", () => { snd("pick"); renderPlayground(); });
 }
 
 /* ---------- STATS ---------- */
@@ -1565,6 +2606,12 @@ function check() {
   document.getElementById("cont").focus();
 }
 document.addEventListener("keydown", e => {
+  if (PG.m && document.getElementById("vzplay")) {
+    if (e.key === " ") { e.preventDefault(); pgToggle(); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); pgPause(); pgGo(PG.i + 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); pgPause(); pgGo(PG.i - 1); }
+    return;
+  }
   if (cardState) {
     const onBtn = e.target && e.target.tagName === "BUTTON";
     if (e.key === "ArrowRight") { e.preventDefault(); cardNext(); }
