@@ -1,6 +1,6 @@
 /* Algo Quest service worker — stale-while-revalidate so the game opens
    instantly (and offline), then quietly picks up new versions. */
-const CACHE = "algo-quest-v4";
+const CACHE = "algo-quest-v5";
 
 self.addEventListener("install", () => self.skipWaiting());
 
