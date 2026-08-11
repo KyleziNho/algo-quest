@@ -1557,6 +1557,7 @@ function drawGraph(f) {
     link("e" + i, x1, y1, x2, y2, hot ? "e-look" : onPath ? "e-path" : "e-idle", hot ? 6 : onPath ? 5 : 3);
     tag("w" + i, (x1 + x2) / 2, (y1 + y2) / 2 - 4, w, hot ? "vz-w hot" : "vz-w");
   });
+  tag("dgcap", 180, 236, "GREY NUMBERS ARE GUESSES · TEAL IS FINAL", "vz-cap");
   for (const id in DG.pos) {
     const [x, y] = DG.pos[id];
     const d = f.dist[id];
@@ -1666,17 +1667,35 @@ function drawSlots(f) {
   }
 }
 
+/* the four nodes as a square, so the cycle is obvious at a glance */
+const FWPOS = [[66, 44], [294, 44], [294, 122], [66, 122]];
 function drawMatrix(f) {
-  const N = f.m.length, W = 360, cw = 62, x0 = (W - cw * N) / 2 + 14, y0 = 40;
+  /* the network itself — without this the matrix is just numbers */
+  tag("gcap", 180, 16, f.wide ? "THE NETWORK · NUMBERS ARE LINK BANDWIDTH" : "THE NETWORK · NUMBERS ARE LINK LENGTH", "vz-cap");
+  f.edges.forEach(([u, v, w], idx) => {
+    const [x1, y1] = FWPOS[u], [x2, y2] = FWPOS[v];
+    const hot = f.k != null && (u === f.k || v === f.k);
+    link("ge" + idx, x1, y1, x2, y2, hot ? "e-look" : "e-idle", hot ? 5 : 3);
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    const dx = mx - 180, dy = my - 83, len = Math.hypot(dx, dy) || 1;
+    tag("gw" + idx, mx + dx / len * 15, my + dy / len * 15 + 4, w, hot ? "vz-w hot" : "vz-w");
+  });
+  FWPOS.forEach(([x, y], i) => {
+    const cls = i === f.k ? "n-look" : f.hot && (f.hot[0] === i || f.hot[1] === i) ? "n-path" : "n-idle";
+    orb("node", "gn" + i, x, y, 17, f.names[i], cls);
+  });
+
+  const N = f.m.length, W = 360, cw = 62, x0 = (W - cw * N) / 2 + 14, y0 = 196;
+  tag("mcap", 180, 172, f.wide ? "BEST BANDWIDTH BETWEEN EVERY PAIR" : "BEST DISTANCE BETWEEN EVERY PAIR", "vz-cap");
   f.m.forEach((row, i) => {
-    tag("mr" + i, x0 - 12, y0 + i * 40 + 20, f.names[i], "vz-cap");
+    tag("mr" + i, x0 - 12, y0 + i * 37 + 19, f.names[i], "vz-cap");
     row.forEach((v, j) => {
-      if (i === 0) tag("mc" + j, x0 + j * cw + cw / 2 - 2, y0 - 10, f.names[j], "vz-cap");
+      if (i === 0) tag("mc" + j, x0 + j * cw + cw / 2 - 2, y0 - 8, f.names[j], "vz-cap");
       let cls = "n-idle";
       if (f.hot && f.hot[0] === i && f.hot[1] === j) cls = f.better ? "n-lock" : "n-look";
       else if (f.k != null && (i === f.k || j === f.k)) cls = "n-seen";
-      cell("node", "m" + i + "_" + j, x0 + j * cw, y0 + i * 40, cw - 5, 34,
-        v === Infinity ? "∞" : v === 0 && f.wide ? "–" : v, cls);
+      cell("node", "m" + i + "_" + j, x0 + j * cw, y0 + i * 37, cw - 5, 32,
+        v === Infinity ? "∞" : v, cls);
     });
   });
 }
@@ -1726,7 +1745,10 @@ function mDijkstra(o) {
       if (via < old) {
         dist[v] = via; tree[v] = u;
         snap("Via <b>" + u.toUpperCase() + "</b>, node <b>" + v.toUpperCase() + "</b> costs " + dist[u] + " + " + w + " = <b>" + via + "</b>" +
-          (old === Infinity ? " — its first real route." : ", beating the old " + old + ". Better route found."), { cur: u, edge: [u, v] });
+          (old === Infinity
+            ? ". That is only a <b>first guess</b> — " + v.toUpperCase() + " stays open, so a shorter way round can still turn up later."
+            : ", beating the old " + old + ". <b>" + v.toUpperCase() + "'s guess drops from " + old + " to " + via + ".</b>"),
+          { cur: u, edge: [u, v] });
       } else {
         snap("Via <b>" + u.toUpperCase() + "</b>, node <b>" + v.toUpperCase() + "</b> would cost " + dist[u] + " + " + w + " = " + via + ", which loses to <b>" + old + "</b>. Keep what I had.", { cur: u, edge: [u, v] });
       }
@@ -1736,7 +1758,7 @@ function mDijkstra(o) {
   return {
     shape: "graph", frames: F, vb: "0 0 360 240",
     reads: f => [["lock", f.settled.length + "/6", "locked in"], ["look", f.dist[f.cur] === undefined || f.cur === null ? "–" : f.dist[f.cur], "settling"]],
-    note: "This is the same network you meet in the quiz. Watch the <b>settle order</b>: A, D, B, F, E, C — always increasing distance. If your exam trace settles 14 before 11, you have slipped.",
+    note: "The number above a node is a <b>guess that can still improve</b>, not the answer. E first gets 20 (via D), then drops to <b>14</b> once B is settled and offers 7 + 7 — a node's number is only final when it turns <b>teal</b>. Same network as the quiz; watch the <b>settle order</b> A, D, B, F, E, C, always increasing.",
   };
 }
 
@@ -2007,44 +2029,55 @@ function mFloyd(o) {
   const wide = o.wide === true;
   const names = ["A", "B", "C", "D"];
   const INF = Infinity;
+  /* Bandwidth is the mirror image of distance, so the two special values flip:
+     no link = 0 capacity (was ∞ distance); yourself = ∞ capacity (was 0 distance). */
   const base = wide
-    ? [[0, 100, 0, 30], [100, 0, 56, 0], [0, 56, 0, 1000], [30, 0, 1000, 0]]
+    ? [[INF, 100, 0, 30], [100, INF, 56, 0], [0, 56, INF, 1000], [30, 0, 1000, INF]]
     : [[0, 4, INF, 8], [4, 0, 3, INF], [INF, 3, 0, 2], [8, INF, 2, 0]];
+  const edges = wide
+    ? [[0, 1, 100], [1, 2, 56], [2, 3, 1000], [3, 0, 30]]
+    : [[0, 1, 4], [1, 2, 3], [2, 3, 2], [3, 0, 8]];
   const m = base.map(r => r.slice());
   const F = [];
   let improved = 0;
   const snap = (say, extra) => F.push(Object.assign({
-    m: m.map(r => r.slice()), names: names, wide: wide, k: null, hot: null, better: false,
+    m: m.map(r => r.slice()), names: names, wide: wide, edges: edges, k: null, hot: null, better: false,
     say: say, improved: improved,
   }, extra || {}));
   snap(wide
-    ? "Best <b>bandwidth</b> between every pair. A route is only as good as its <b>weakest link</b>, and I want the route whose weakest link is strongest. Start from the direct links."
-    : "Shortest path between <b>every</b> pair at once. Start with the direct edges only — <b>∞</b> means no direct link yet.");
+    ? "Four sites in a ring. Each link has a <b>bandwidth</b>, and a route only carries as much as its <b>narrowest</b> link — so I want the route whose narrowest link is the <b>widest</b>. The table starts with direct links only: <b>0</b> means no cable, <b>∞</b> is a site to itself."
+    : "Shortest path between <b>every</b> pair at once. The table starts with direct links only — <b>∞</b> means there is no direct link yet, <b>0</b> is a node to itself.");
   for (let k = 0; k < 4; k++) {
-    snap("Now allow <b>" + names[k] + "</b> as a stopover. Every pair gets asked the same question: is going through " + names[k] + " better than what I already have?", { k: k });
+    snap("Now allow <b>" + names[k] + "</b> as a stopover. Every pair gets asked the same question: is routing through " + names[k] + " better than what I already have?", { k: k });
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4; j++) {
         if (i === j || i === k || j === k) continue;
         const via = wide ? Math.min(m[i][k], m[k][j]) : m[i][k] + m[k][j];
         const better = wide ? via > m[i][j] : via < m[i][j];
-        const viaTxt = wide
-          ? "min(" + m[i][k] + ", " + m[k][j] + ") = <b>" + via + "</b>"
-          : m[i][k] + " + " + m[k][j] + " = <b>" + (via === INF ? "∞" : via) + "</b>";
-        snap(names[i] + " → " + names[k] + " → " + names[j] + " costs " + viaTxt + ", against the current <b>" + (m[i][j] === INF ? "∞" : m[i][j]) + "</b>. " +
-          (better ? (wide ? "Wider — take it." : "Shorter — take it.") : "No better, keep what I had."), { k: k, hot: [i, j], better: better });
+        const route = names[i] + " → " + names[k] + " → " + names[j];
+        const cur = m[i][j] === INF ? "∞" : m[i][j];
+        const say = wide
+          ? (m[i][k] === 0 || m[k][j] === 0
+              ? "<b>" + route + "</b> is not a real route — one of those legs has <b>0</b> bandwidth, so nothing gets through. Current best stays <b>" + cur + "</b>."
+              : "<b>" + route + "</b>: the two legs carry <b>" + m[i][k] + "</b> and <b>" + m[k][j] + "</b>, so the whole route is throttled to the smaller — min(" + m[i][k] + ", " + m[k][j] + ") = <b>" + via + "</b>. Against the current best of <b>" + cur + "</b>: " +
+                (better ? "that is <b>wider</b>, so take it." : "no wider, so keep what I had."))
+          : "<b>" + route + "</b> costs " + m[i][k] + " + " + m[k][j] + " = <b>" + (via === INF ? "∞" : via) + "</b>, against the current <b>" + cur + "</b>. " +
+            (better ? "Shorter — take it." : "No better, keep what I had.");
+        /* commit first, so the cell shows its NEW value in the same frame that explains it */
         if (better) { m[i][j] = via; improved++; }
+        snap(say, { k: k, hot: [i, j], better: better });
       }
     }
   }
   snap(wide
-    ? "Finished. Same three loops as shortest-path Floyd–Warshall — I only swapped <b>+ for min</b> and <b>min for max</b>. That two-operator swap is worth 6 marks."
+    ? "Finished. Look at <b>A → D</b>: the direct cable is only <b>30</b>, but going the long way round through B and C gives min(100, 56, 1000) = <b>56</b>. A longer route can be a <b>wider</b> one — which is exactly why this is not the shortest-path problem. Same three loops, only <b>+ became min</b> and <b>min became max</b>."
     : "Finished. Three nested loops over k, i, j — so <b>Θ(V³)</b>. Fine for hundreds of nodes, hopeless for 100,000.", { done: true });
   return {
-    shape: "matrix", frames: F, vb: "0 0 360 220",
+    shape: "matrix", frames: F, vb: "0 0 360 350",
     reads: f => [["look", f.k == null ? "–" : f.names[f.k], "stopover"], ["lock", f.improved, wide ? "routes widened" : "routes shortened"]],
     note: wide
-      ? "Widest path: a chain of pipes carries only what its <b>skinniest</b> pipe allows, so you combine a route with <b>min</b> and choose between routes with <b>max</b>."
-      : "Watch the ∞ cells fill in as stopovers become available. Flip to <b>bandwidth</b> to see the same machine solve the mock's 20-mark question.",
+      ? "Two operators, two different jobs. <b>min</b> combines the legs of one route (a chain is only as good as its weakest link); <b>max</b> chooses between competing routes (you want the strongest weak link). Shortest path uses <b>+</b> to combine and <b>min</b> to choose — that is the entire difference, and it is the mock's 6-mark adaptation."
+      : "Watch the ∞ cells fill in as stopovers become available. Then flip to <b>bandwidth</b>: same loops, same table, but <b>+</b> becomes <b>min</b> and <b>min</b> becomes <b>max</b>.",
   };
 }
 
