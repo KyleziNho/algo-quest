@@ -1545,17 +1545,22 @@ function tag(id, x, y, text, cls) {
 /* ---------------- shape renderers ---------------- */
 
 const DG = {
-  pos: { a: [44, 56], b: [172, 44], c: [304, 70], d: [64, 168], e: [190, 156], f: [308, 198] },
+  pos: { a: [46, 52], b: [176, 38], c: [312, 62], d: [52, 170], e: [188, 140], f: [310, 196] },
   edges: [["a", "b", 7], ["a", "d", 5], ["b", "d", 9], ["b", "e", 7], ["c", "e", 5],
           ["c", "f", 6], ["d", "e", 15], ["d", "f", 6], ["e", "f", 8]],
 };
+/* centre of the drawing — weight labels get pushed away from it, so they
+   never end up sitting underneath a node or straddling their own line */
+const DGMID = [180, 110];
 function drawGraph(f) {
   DG.edges.forEach(([u, v, w], i) => {
     const [x1, y1] = DG.pos[u], [x2, y2] = DG.pos[v];
     const onPath = f.tree && (f.tree[v] === u || f.tree[u] === v);
     const hot = f.edge && ((f.edge[0] === u && f.edge[1] === v) || (f.edge[0] === v && f.edge[1] === u));
     link("e" + i, x1, y1, x2, y2, hot ? "e-look" : onPath ? "e-path" : "e-idle", hot ? 6 : onPath ? 5 : 3);
-    tag("w" + i, (x1 + x2) / 2, (y1 + y2) / 2 - 4, w, hot ? "vz-w hot" : "vz-w");
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    const dx = mx - DGMID[0], dy = my - DGMID[1], L = Math.hypot(dx, dy) || 1;
+    tag("w" + i, mx + dx / L * 13, my + dy / L * 13 + 4, w, hot ? "vz-w hot" : "vz-w");
   });
   tag("dgcap", 180, 236, "GREY NUMBERS ARE GUESSES · TEAL IS FINAL", "vz-cap");
   for (const id in DG.pos) {
