@@ -609,6 +609,22 @@
   .e-drop line { stroke: var(--vz-drop); opacity: .35; }
   .vz-w.hot { fill: var(--gold); font-weight: 900; font-size: 13px; }
 
+  /* ---------- proof lab ---------- */
+  .pf-goal { background: var(--accent-soft); border: 2px solid var(--accent); border-radius: 12px; padding: .5rem .7rem; font-size: .84rem; font-weight: 800; text-align: center; margin: .7rem 0 .3rem; }
+  .pf-goal span { font-family: ui-monospace, Menlo, monospace; }
+  .pf-body { display: grid; gap: .4rem; margin: .7rem 0 .2rem; max-height: 42vh; min-height: 8rem; overflow-y: auto; padding: .15rem; scroll-behavior: smooth; }
+  .pf-step { padding: .5rem .65rem; border-radius: 12px; background: var(--code-bg); border: 2px solid transparent; opacity: .45; transition: opacity .18s ease, border-color .18s ease, background .18s ease; }
+  .pf-step.now { opacity: 1; border-color: var(--accent); background: var(--accent-soft); }
+  .pf-step.now.crux { border-color: var(--gold); background: var(--gold-soft); }
+  .pf-line { font-family: ui-monospace, Menlo, monospace; font-size: .9rem; font-weight: 700; line-height: 1.65; overflow-x: auto; }
+  .pf-tag { display: inline-block; font-size: .6rem; letter-spacing: .09em; font-weight: 900; text-transform: uppercase; color: var(--muted); background: var(--surface); border-radius: 6px; padding: 1px 6px; margin-bottom: 5px; }
+  .pf-step.now .pf-tag { color: var(--accent-deep); }
+  .pf-step.now.crux .pf-tag { color: #8a6712; }
+  .pf-mirror { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin: .9rem 0 0; }
+  .pf-mcell { background: var(--code-bg); border-radius: 12px; padding: .55rem .6rem; font-size: .76rem; line-height: 1.5; }
+  .pf-mcell b { font-family: ui-monospace, Menlo, monospace; }
+  .pf-mhead { font-size: .62rem; letter-spacing: .09em; text-transform: uppercase; font-weight: 900; color: var(--muted); margin-bottom: 3px; }
+
   /* ---------- adversary duel ---------- */
   .dl-grid { display: grid; gap: .7rem; }
   .dl-card { display: flex; align-items: center; gap: .75rem; text-align: left; width: 100%; padding: .85rem .9rem; background: var(--surface); border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 16px; cursor: pointer; color: var(--ink); font: inherit; }
@@ -2669,6 +2685,148 @@ function duelWin() {
   duelRender();
 }
 
+/* ================= PROOF LAB =================
+   Induction is a chain, so you can't quiz it — you have to watch it build.
+   Every step shows what changed, WHY it was allowed, and the target stays
+   pinned at the top so you always know where you're driving. */
+
+const PROOFS = [
+  {
+    id: "omega", chip: "Ω (3/2)ⁿ  — the floor",
+    goal: `show &nbsp;<span>T(n) ≥ c · (3/2)ⁿ</span>`,
+    steps: [
+      { tag: "Setup", l: `T(n) = T(n−1) + T(n−2) + 1`,
+        why: `This is what naive <b>fib</b> costs: solve two smaller problems, plus the one addition that glues them together. Everything below is about pinning down how fast that grows.` },
+      { tag: "Goal", l: `want:&nbsp; T(n) ≥ c · (3/2)ⁿ`,
+        why: `<b>Ω means "at least this fast."</b> So we're hunting for a <b>floor</b> — some constant multiple of (3/2)ⁿ that T(n) never drops below. We get to choose c, and it only has to work from some point onwards.` },
+      { tag: "Base cases", l: `T(0) = 1 ≥ c·(3/2)⁰ = c<br>T(1) = 1 ≥ c·(3/2)¹ = 1.5c<br><br>→ both hold when &nbsp;<b>c = 2/3</b>`,
+        why: `<b>Two</b> base cases — because the recurrence reaches back two steps, and one would leave a hole. They also pin down c: it has to be small enough to satisfy both, and 2/3 does it. (Dropping the second base case is a free mark thrown away.)` },
+      { tag: "The assumption", l: `assume &nbsp;T(k) ≥ c·(3/2)ᵏ &nbsp;for every &nbsp;k &lt; n`,
+        why: `<b>The step that feels like cheating — it isn't.</b> We are not assuming the answer for n. We assume it for everything <b>smaller</b>, and then prove it for n.<br><br>Think dominoes: you don't push every domino. You show "if the ones before me fell, I fall too" — and the base cases push the first two by hand.` },
+      { tag: "Substitute", l: `T(n) = T(n−1) + T(n−2) + 1<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≥ c(3/2)ⁿ⁻¹ + c(3/2)ⁿ⁻² + 1`,
+        why: `n−1 and n−2 are both <b>smaller than n</b> — so the assumption applies to them, and we can swap each one out for its floor. This is the only place the assumption gets used.` },
+      { tag: "Drop the +1", l: `≥ c(3/2)ⁿ⁻¹ + c(3/2)ⁿ⁻²`,
+        why: `Throwing the +1 away makes the right-hand side <b>smaller</b> — and "at least" survives getting smaller, so the ≥ still holds.<br><br>For a <b>lower</b> bound the +1 is free help. In the O(2ⁿ) proof it's the opposite: there you're forced to carry it and absorb it. Flip to the other tab afterwards and watch that happen.` },
+      { tag: "Factor", l: `= c(3/2)ⁿ⁻² · [ (3/2) + 1 ]`,
+        why: `Pull out the <b>smallest power present</b>, (3/2)ⁿ⁻², because it divides both terms.<br><br>The first term is one power bigger, so it leaves a (3/2) behind. The second <i>is</i> that power, so it leaves 1.` },
+      { tag: "Add it up", l: `= c(3/2)ⁿ⁻² · (5/2)`,
+        why: `3/2 + 1 = 5/2. Hold onto that number — it's the left-hand side of the only comparison that matters.` },
+      { tag: "Same units", l: `target: &nbsp;c(3/2)ⁿ<br>&nbsp;&nbsp;= c(3/2)ⁿ⁻² · (3/2)²<br>&nbsp;&nbsp;= c(3/2)ⁿ⁻² · (9/4)`,
+        why: `Now rewrite the <b>goal</b> using the same common factor. Both sides are now "c(3/2)ⁿ⁻² × something" — and that's precisely what makes them comparable.<br><br>This is the move most people miss. You can't compare the two until they're in matching units.` },
+      { tag: "The crux", crux: true, l: `&nbsp;&nbsp;5/2 &nbsp;≥&nbsp; 9/4<br>&nbsp;&nbsp;2.5 &nbsp;≥&nbsp; 2.25 &nbsp;&nbsp;✓`,
+        why: `Cancel c(3/2)ⁿ⁻² from both sides and <b>the whole proof collapses to this one line of arithmetic</b>. 2.5 clears 2.25, so the step goes through. That's it — that's the entire mathematical content.` },
+      { tag: "Close it", l: `T(n) ≥ c(3/2)ⁿ⁻²·(5/2)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≥ c(3/2)ⁿ⁻²·(9/4)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= c(3/2)ⁿ &nbsp;∎`,
+        why: `We landed on <b>exactly</b> c(3/2)ⁿ — character for character, the form we guessed at the start. <b>That</b> is what closes an induction.<br><br>Stopping at "…so it's Ω((3/2)ⁿ)" without reaching the exact expression is where the marks quietly disappear.` },
+      { tag: "So why 3/2?", l: `the step needed &nbsp;x + 1 ≥ x²<br><br>true for every &nbsp;x ≤ φ = 1.618…<br>and &nbsp;3/2 = 1.5 &lt; φ &nbsp;✓`,
+        why: `Nothing about 3/2 was special — the only thing it had to do was satisfy <b>x + 1 ≥ x²</b>. That holds for any x below the golden ratio.<br><br>Push x above φ and the inequality flips — which is exactly why <b>2</b> works as a ceiling instead. Same template, opposite side of φ.` },
+    ],
+  },
+  {
+    id: "bigO", chip: "O 2ⁿ — the ceiling",
+    goal: `show &nbsp;<span>T(n) ≤ c · 2ⁿ</span>`,
+    steps: [
+      { tag: "Setup", l: `T(n) = T(n−1) + T(n−2) + 1`,
+        why: `Same recurrence, same naive fib. Only the direction of the hunt changes.` },
+      { tag: "Goal", l: `want:&nbsp; T(n) ≤ c · 2ⁿ`,
+        why: `<b>O means "at most this fast."</b> A <b>ceiling</b> this time — a constant multiple of 2ⁿ that T(n) never climbs above.` },
+      { tag: "Base cases", l: `T(0) = 1 ≤ c·2⁰ = c<br>T(1) = 1 ≤ c·2¹ = 2c<br><br>→ both hold when &nbsp;<b>c = 1</b>`,
+        why: `Two base cases again. But notice c goes the <b>other way</b>: for a ceiling it must be <b>big enough</b>, not small enough. c = 1 clears both.` },
+      { tag: "The assumption", l: `assume &nbsp;T(k) ≤ c·2ᵏ &nbsp;for every &nbsp;k &lt; n`,
+        why: `Identical logic to the floor version — assume it for everything <b>smaller</b> than n, then prove it for n itself.` },
+      { tag: "Substitute", l: `T(n) = T(n−1) + T(n−2) + 1<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ c·2ⁿ⁻¹ + c·2ⁿ⁻² + 1`,
+        why: `Swap both smaller terms for their ceilings.` },
+      { tag: "Keep the +1!", l: `≤ c·2ⁿ⁻¹ + c·2ⁿ⁻² + 1`,
+        why: `<b>Here's the mirror-image moment.</b> In the Ω proof we happily binned the +1. We can't now.<br><br>Dropping it would make the right side <b>smaller</b> — but a ceiling has to stay <b>big enough</b> to cover T(n). So the +1 comes along, and we have to find room for it.` },
+      { tag: "Factor", l: `= c·2ⁿ⁻² · [ 2 + 1 ] + 1<br>= 3c·2ⁿ⁻² + 1`,
+        why: `Same move: pull out the smallest power, 2ⁿ⁻². The first term leaves a 2, the second leaves 1, giving 3. The +1 sits outside, still waiting.` },
+      { tag: "Same units", l: `target: &nbsp;c·2ⁿ<br>&nbsp;&nbsp;= c·2ⁿ⁻² · 2²<br>&nbsp;&nbsp;= 4c·2ⁿ⁻²`,
+        why: `Rewrite the goal with the same common factor, exactly as before. Now both sides read "c·2ⁿ⁻² × something."` },
+      { tag: "The crux", crux: true, l: `&nbsp;&nbsp;3 &nbsp;≤&nbsp; 4 &nbsp;&nbsp;✓<br><br>leftover room: &nbsp;1 ≤ c·2ⁿ⁻²`,
+        why: `3 against 4 — so we have a <b>whole spare c·2ⁿ⁻²</b> of headroom. That's where the stray +1 lives: it fits inside the gap whenever c ≥ 1 and n ≥ 2.<br><br>Same one-line collapse as the other proof, just with slack instead of a tight squeeze.` },
+      { tag: "Close it", l: `T(n) ≤ 3c·2ⁿ⁻² + 1<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ 4c·2ⁿ⁻²<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= c·2ⁿ &nbsp;∎`,
+        why: `Landed on exactly c·2ⁿ. <b>Never</b> finish with "≤ c·2ⁿ⁻¹ + c·2ⁿ⁻² + 1 = O(2ⁿ)" — that's the classic no-marks ending. Drive it all the way to the guessed form.` },
+      { tag: "So why 2?", l: `the step needed &nbsp;x + 1 ≤ x²<br><br>true for every &nbsp;x ≥ φ = 1.618…<br>and &nbsp;2 &gt; φ &nbsp;✓`,
+        why: `2 wasn't special either — it just had to satisfy <b>x + 1 ≤ x²</b>, which holds for anything above the golden ratio.<br><br>So the two proofs aren't really two proofs. They're one template, run once on each side of φ — and the truth, φⁿ ≈ 1.618ⁿ, is trapped in between.` },
+    ],
+  },
+];
+
+let PR = { id: "omega", i: 0 };
+
+function renderProofLab(keep) {
+  S = null; pgStop(); PG.m = null; D = null;
+  if (!keep) PR = { id: "omega", i: 0 };
+  const p = PROOFS.find(x => x.id === PR.id);
+  window.scrollTo(0, 0);
+  app.innerHTML = statbarHTML() + `
+  <div class="pg-head">
+    <button class="pg-back" id="pfback" aria-label="Back to levels">‹</button>
+    <div><div class="pg-title">🪜 Proof Lab</div><div class="pg-sub">Induction, one line at a time</div></div>
+  </div>
+  <p class="pg-intro">Mock <b>Q9b</b> and <b>Q9e</b> — the two bounds on <b>T(n) = T(n−1) + T(n−2) + 1</b>. Same template both times; only the direction flips. Step through, or scrub back over any line.</p>
+  <div class="vz-ctrls"><div class="vz-group">
+    <span class="vz-glabel">Prove</span>
+    ${PROOFS.map(x => `<button class="vz-chip ${x.id === PR.id ? "on" : ""}" data-p="${x.id}">${x.chip}</button>`).join("")}
+  </div></div>
+  <div class="pf-goal">🎯 ${p.goal}</div>
+  <div class="pf-body" id="pfbody"></div>
+  <div class="vz-say" id="pfsay"><span class="vs-emoji">💬</span><span class="vs-text"></span></div>
+  <div class="vz-scrub">
+    <input type="range" id="pfrange" min="0" max="${p.steps.length - 1}" value="${PR.i}" aria-label="Step through the proof">
+    <span class="vz-step" id="pfstep"></span>
+  </div>
+  <div class="vz-transport">
+    <button class="vz-tbtn" id="pffirst" aria-label="Back to the start">⏮</button>
+    <button class="vz-tbtn" id="pfprev" aria-label="Previous line">‹</button>
+    <button class="vz-tbtn play" id="pfnext" style="flex:2">Next line ›</button>
+    <button class="vz-tbtn" id="pflast" aria-label="Jump to the end">⏭</button>
+  </div>
+  <div class="pf-mirror">
+    <div class="pf-mcell"><div class="pf-mhead">Floor · Ω</div>needs <b>x + 1 ≥ x²</b><br>works below φ<br><b>3/2 → 2.5 ≥ 2.25</b></div>
+    <div class="pf-mcell"><div class="pf-mhead">Ceiling · O</div>needs <b>x + 1 ≤ x²</b><br>works above φ<br><b>2 → 3 ≤ 4</b></div>
+  </div>
+  <p class="vz-note">Everything collapses to <b>x + 1 vs x²</b>. The break-even point is the golden ratio φ = 1.618… — which is why the real answer is Θ(φⁿ), squeezed between the two.</p>
+  <div class="spacer" style="height:2rem"></div>`;
+  wireStatbar();
+  document.getElementById("pfback").addEventListener("click", renderHome);
+  app.querySelectorAll(".vz-chip[data-p]").forEach(b => b.addEventListener("click", () => {
+    snd("pick"); PR = { id: b.dataset.p, i: 0 }; renderProofLab(true);
+  }));
+  document.getElementById("pffirst").addEventListener("click", () => pfGo(0));
+  document.getElementById("pfprev").addEventListener("click", () => pfGo(PR.i - 1));
+  document.getElementById("pfnext").addEventListener("click", () => pfGo(PR.i + 1));
+  document.getElementById("pflast").addEventListener("click", () => pfGo(p.steps.length - 1));
+  const r = document.getElementById("pfrange");
+  r.addEventListener("input", () => pfGo(+r.value, true));
+  pfGo(PR.i, false, true);
+}
+
+function pfGo(i, fromScrub, first) {
+  const p = PROOFS.find(x => x.id === PR.id);
+  const body = document.getElementById("pfbody");
+  if (!body) return;
+  const clamped = Math.max(0, Math.min(p.steps.length - 1, i));
+  if (!first && clamped !== PR.i) snd("pick");
+  PR.i = clamped;
+
+  body.innerHTML = p.steps.slice(0, PR.i + 1).map((s, j) => `
+    <div class="pf-step ${j === PR.i ? "now" : ""} ${s.crux ? "crux" : ""}">
+      ${s.tag ? `<span class="pf-tag">${s.tag}</span>` : ""}
+      <div class="pf-line">${s.l}</div>
+    </div>`).join("");
+
+  const say = document.getElementById("pfsay");
+  say.querySelector(".vs-text").innerHTML = p.steps[PR.i].why;
+  say.classList.toggle("done", PR.i === p.steps.length - 1);
+  document.getElementById("pfstep").textContent = (PR.i + 1) + "/" + p.steps.length;
+  if (!fromScrub) document.getElementById("pfrange").value = PR.i;
+  document.getElementById("pfprev").disabled = PR.i === 0;
+  const nx = document.getElementById("pfnext");
+  nx.disabled = PR.i === p.steps.length - 1;
+  nx.textContent = PR.i === p.steps.length - 1 ? "Proof complete ∎" : "Next line ›";
+  if (!first) { const el = body.lastElementChild; if (el) el.scrollIntoView({ block: "nearest" }); }
+}
+
 /* ---------- HOME ---------- */
 function renderHome() {
   S = null; pgStop(); PG.m = null;
@@ -2732,6 +2890,14 @@ function renderHome() {
       <div class="qc-sub">Fight the pumping lemma. It picks n and the split — you pick the word and the pump. Beat every split and you've written the proof.</div>
     </div>
     <button class="btn" data-act="duel" style="background:var(--bad); border-bottom-color:var(--bad-deep)">Fight</button>
+  </div>
+  <div class="quickcard" style="border-color:var(--purple); background:var(--purple-soft)">
+    <span class="qc-emoji">🪜</span>
+    <div class="qc-text">
+      <div class="qc-title">Proof Lab</div>
+      <div class="qc-sub">Mock Q9b &amp; Q9e built line by line — why you're allowed to assume it, where the factoring comes from, and the one comparison it all collapses to.</div>
+    </div>
+    <button class="btn" data-act="proof" style="background:var(--purple); border-bottom-color:var(--purple-deep)">Open</button>
   </div>`;
   let lastUnit = "";
   LEVELS.forEach((L, i) => {
@@ -2768,6 +2934,8 @@ function renderHome() {
   if (pb) pb.addEventListener("click", () => { snd("pick"); renderPlayground(); });
   const db = app.querySelector('[data-act="duel"]');
   if (db) db.addEventListener("click", () => { snd("pick"); renderDuelMenu(); });
+  const fb = app.querySelector('[data-act="proof"]');
+  if (fb) fb.addEventListener("click", () => { snd("pick"); renderProofLab(); });
 }
 
 /* ---------- STATS ---------- */
