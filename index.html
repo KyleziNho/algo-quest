@@ -609,6 +609,44 @@
   .e-drop line { stroke: var(--vz-drop); opacity: .35; }
   .vz-w.hot { fill: var(--gold); font-weight: 900; font-size: 13px; }
 
+  /* ---------- adversary duel ---------- */
+  .dl-grid { display: grid; gap: .7rem; }
+  .dl-card { display: flex; align-items: center; gap: .75rem; text-align: left; width: 100%; padding: .85rem .9rem; background: var(--surface); border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 16px; cursor: pointer; color: var(--ink); font: inherit; }
+  .dl-card:active { transform: translateY(2px); border-bottom-width: 2px; }
+  .dl-card .dc-emoji { font-size: 1.6rem; flex: none; }
+  .dl-card .dc-text { flex: 1; min-width: 0; }
+  .dl-card .dc-title { display: block; font-weight: 900; font-size: 1rem; line-height: 1.3; }
+  .dl-card .dc-sub { display: block; font-size: .78rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .dl-card .dc-done { margin-left: auto; color: var(--good); font-weight: 900; font-size: 1.1rem; flex: none; }
+  .dl-say { display: flex; gap: .6rem; align-items: flex-start; background: var(--bad-soft); border: 2px solid var(--bad); border-radius: 14px; padding: .7rem .8rem; margin: .9rem 0; }
+  .dl-say.good { background: var(--good-soft); border-color: var(--good); }
+  .dl-say.calm { background: var(--accent-soft); border-color: var(--accent); }
+  .dl-say .ds-e { font-size: 1.25rem; flex: none; line-height: 1.2; }
+  .dl-say .ds-t { font-size: .88rem; font-weight: 700; line-height: 1.45; }
+  .dl-step { font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); font-weight: 900; margin: 1.1rem 0 .45rem; }
+  .dl-word { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; margin: .5rem 0 .3rem; }
+  .dl-cell { display: flex; flex-direction: column; align-items: center; }
+  .dl-cell b { font-family: ui-monospace, Menlo, monospace; font-size: 1.1rem; font-weight: 900; min-width: 1.3rem; text-align: center; padding: .22rem .1rem; border-radius: 6px; background: var(--code-bg); color: var(--muted); }
+  .dl-cell i { font-style: normal; font-size: .6rem; font-weight: 900; color: transparent; margin-top: 3px; }
+  .dl-cell.v b, .dl-cell.y b { background: var(--accent); color: #fff; }
+  .dl-cell.x b { background: var(--gold); color: #fff; }
+  .dl-cell.v i, .dl-cell.y i { color: var(--accent); }
+  .dl-cell.x i { color: var(--gold); }
+  .dl-opts { display: grid; gap: .5rem; }
+  .dl-opt { width: 100%; padding: .72rem .8rem; font-weight: 800; font-size: 1rem; font-family: ui-monospace, Menlo, monospace; background: var(--surface); border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 14px; cursor: pointer; color: var(--ink); }
+  .dl-opt:active { transform: translateY(2px); border-bottom-width: 2px; }
+  .dl-pumps { display: flex; gap: .5rem; justify-content: center; }
+  .dl-pump { flex: 1; padding: .75rem .3rem; font-weight: 900; font-size: 1rem; background: var(--accent); color: #fff; border: none; border-bottom: 4px solid var(--accent-deep); border-radius: 14px; cursor: pointer; font-family: ui-monospace, Menlo, monospace; }
+  .dl-pump:active { transform: translateY(2px); border-bottom-width: 2px; }
+  .dl-counts { display: flex; gap: .4rem; justify-content: center; margin: .55rem 0; flex-wrap: wrap; }
+  .dl-count { font-family: ui-monospace, Menlo, monospace; font-weight: 900; font-size: .82rem; padding: .25rem .5rem; border-radius: 8px; background: var(--code-bg); }
+  .dl-prog { display: flex; gap: 4px; justify-content: center; margin: .5rem 0 .2rem; }
+  .dl-pip { width: 24px; height: 6px; border-radius: 3px; background: var(--line); }
+  .dl-pip.on { background: var(--good); }
+  .dl-pip.now { background: var(--accent); }
+  .dl-hearts { text-align: center; letter-spacing: 3px; font-size: 1rem; }
+  .dl-rule { font-size: .76rem; color: var(--muted); text-align: center; margin: .3rem 0 0; line-height: 1.5; }
+  .dl-goal { font-family: ui-monospace, Menlo, monospace; font-weight: 900; font-size: 1.05rem; text-align: center; background: var(--code-bg); border-radius: 12px; padding: .6rem .5rem; margin: .2rem 0 .1rem; }
 </style>
 </head>
 <body>
@@ -2330,6 +2368,307 @@ function pgToggle() {
   PG.timer = setTimeout(tick, 260 / PG.speed);
 }
 
+/* ================= ADVERSARY DUEL =================
+   The pumping lemma is literally a two-player game. The app plays the
+   adversary: it picks n and the split, you pick the word and the pump.
+   You only win a round by beating EVERY split it throws at you. */
+
+function dlCount(w, ch) { let k = 0; for (const c of w) if (c === ch) k++; return k; }
+function dlSquare(k) { const r = Math.round(Math.sqrt(k)); return k > 0 && r * r === k; }
+function dlSplitCounts(w) { const m = w.match(/^(b*)a(b*)$/); return m ? [m[1].length, m[2].length] : null; }
+
+const DUELS = [
+  {
+    id: "abc", emoji: "🧱", title: "aⁿbⁿcⁿ", kind: "cfl", n: 3,
+    goal: "aⁿbⁿcⁿ is not context-free",
+    sub: "Sheet 6 · your lecturer's benchmark question",
+    inL: w => /^a*b*c*$/.test(w) && dlCount(w, "a") === dlCount(w, "b") && dlCount(w, "b") === dlCount(w, "c"),
+    words: [
+      { s: "aaabbbccc", ok: true },
+      { s: "aabbbccc", ok: false, why: "That word isn't even <b>in</b> L — 2 a's but 3 b's. Rule 1: your word must be a genuine member of the language you're attacking." },
+      { s: "ab", ok: false, why: "Too short. The rules demand <b>|w| ≥ n</b>, and the adversary set n = 3. It throws this straight out." },
+      { s: "abcabc", ok: false, why: "Not in L — the letters must come as one block of a's, then b's, then c's. This interleaves them." },
+    ],
+    splits: [
+      { lab: "Both pieces inside the a-block", vs: 0, ve: 1, xe: 2, ye: 3 },
+      { lab: "v in the a's, y in the b's", vs: 2, ve: 3, xe: 3, ye: 4 },
+      { lab: "Both pieces inside the b-block", vs: 3, ve: 4, xe: 5, ye: 6 },
+      { lab: "v in the b's, y in the c's", vs: 5, ve: 6, xe: 6, ye: 7 },
+      { lab: "Both pieces inside the c-block", vs: 6, ve: 7, xe: 8, ye: 9 },
+    ],
+    proof: "Suppose L were context-free, with pumping length n. Choose <b>w = aⁿbⁿcⁿ</b>, which is in L and has |w| ≥ n. Write w = uvxyz with |vxy| ≤ n and |vy| > 0. Because the window vxy is at most n long, <b>it cannot touch both the a-block and the c-block</b> — so at least one of the three letters lies entirely outside v and y. Pumping therefore changes at most two of the three counts while the third stays fixed, so uv²xy²z has unequal counts and is not in L. This contradicts the pumping lemma, so L is not context-free. ∎",
+  },
+  {
+    id: "ww", emoji: "👯", title: "ww", kind: "cfl", n: 2,
+    goal: "{ ww | w ∈ {a,b}* } is not context-free",
+    sub: "Sheet 6 · the copy language",
+    inL: w => w.length % 2 === 0 && w.slice(0, w.length / 2) === w.slice(w.length / 2),
+    words: [
+      { s: "aabbaabb", ok: true },
+      { s: "aabb", ok: false, why: "Not in L. Split it in half: <b>aa</b> and <b>bb</b> — those aren't the same string, so it isn't of the form ww." },
+      { s: "abba", ok: false, why: "Not in L. Halves are <b>ab</b> and <b>ba</b> — a palindrome, not a repeat. L wants the two halves identical." },
+    ],
+    splits: [
+      { lab: "Both pieces in the first a-block", vs: 0, ve: 1, xe: 1, ye: 2 },
+      { lab: "Straddling the first a|b border", vs: 1, ve: 2, xe: 2, ye: 3 },
+      { lab: "Both pieces in the first b-block", vs: 2, ve: 3, xe: 3, ye: 4 },
+      { lab: "Straddling the middle b|a border", vs: 3, ve: 4, xe: 4, ye: 5 },
+      { lab: "Both pieces in the last b-block", vs: 6, ve: 7, xe: 7, ye: 8 },
+    ],
+    proof: "Suppose L were context-free, with pumping length n. Choose <b>w = aⁿbⁿaⁿbⁿ</b>, which is in L and has |w| ≥ n. Write w = uvxyz with |vxy| ≤ n and |vy| > 0. Since the window is at most n long it sits inside one block or straddles a single border, so pumping alters one half of the word without making the matching change in the other half. The two halves then differ, so uv²xy²z is not of the form ww. Contradiction, so L is not context-free. ∎",
+  },
+  {
+    id: "asq", emoji: "⬜", title: "a^(k²)", kind: "reg", n: 3,
+    goal: "{ a^(k²) | k > 0 } is not regular",
+    sub: "Sheet 4 · the perfect-squares language",
+    inL: w => /^a+$/.test(w) && dlSquare(w.length),
+    words: [
+      { s: "aaaaaaaaa", ok: true },
+      { s: "aaaaaaa", ok: false, why: "Not in L — that's 7 a's, and 7 isn't a perfect square. Your word has to be a real member of L." },
+      { s: "aa", ok: false, why: "Too short: <b>|w| ≥ n</b> is required and n = 3. (2 isn't a square either.)" },
+    ],
+    splits: [
+      { lab: "y is one a", ys: 0, ye: 1 },
+      { lab: "y is two a's", ys: 0, ye: 2 },
+      { lab: "y is three a's", ys: 0, ye: 3 },
+      { lab: "x is one a, y is two a's", ys: 1, ye: 3 },
+    ],
+    proof: "Suppose L were regular, with pumping length n. Choose <b>w = a^(n²)</b>, which is in L and has |w| ≥ n. Write w = xyz with |xy| ≤ n and |y| > 0, so <b>1 ≤ |y| ≤ n</b>. Pump once: |xy²z| = n² + |y|. Then <b>n² &lt; n² + |y| ≤ n² + n &lt; (n+1)²</b>, so the new length lies strictly between two consecutive perfect squares and cannot itself be a square. So xy²z ∉ L, contradicting the pumping lemma. Hence L is not regular. ∎",
+  },
+  {
+    id: "b3k", emoji: "⚖️", title: "bᵏab³ᵏ", kind: "reg", n: 2,
+    goal: "{ bᵏ a b³ᵏ | k > 0 } is not regular",
+    sub: "Sheet 4 · the fixed-ratio language",
+    inL: w => { const c = dlSplitCounts(w); return !!c && c[0] > 0 && c[1] === 3 * c[0]; },
+    words: [
+      { s: "bbabbbbbb", ok: true },
+      { s: "bbabbb", ok: false, why: "Not in L. There are 2 b's before the a, so you need <b>6</b> after it — this has only 3." },
+      { s: "abbb", ok: false, why: "Not in L. There are no b's before the a, so k = 0 — but the language demands k > 0." },
+    ],
+    splits: [
+      { lab: "y is the first b", ys: 0, ye: 1 },
+      { lab: "y is both b's", ys: 0, ye: 2 },
+      { lab: "x is one b, y is the other", ys: 1, ye: 2 },
+    ],
+    proof: "Suppose L were regular, with pumping length n. Choose <b>w = bⁿ a b³ⁿ</b>, which is in L and has |w| ≥ n. Write w = xyz with |xy| ≤ n and |y| > 0. Since |xy| ≤ n, <b>xy lies entirely inside the first block of b's</b> — it cannot reach the a. So y is a non-empty run of b's from the left block only. Pumping changes the count before the a while leaving the 3k after it untouched, breaking the 1:3 ratio. So xy²z ∉ L, a contradiction, and L is not regular. ∎",
+  },
+  {
+    id: "ijk", emoji: "📐", title: "aⁱbʲcᵏ, i ≤ j ≤ k", kind: "cfl", n: 3,
+    goal: "{ aⁱbʲcᵏ | 0 ≤ i ≤ j ≤ k } is not context-free",
+    sub: "Sheet 6 · ⚠️ the direction of the pump matters",
+    hint: "Ask which way breaks it. Growing a block that's allowed to be <b>bigger</b> keeps you inside L — you may need to pump <b>down</b> instead.",
+    inL: w => { if (!/^a*b*c*$/.test(w)) return false; const i = dlCount(w, "a"), j = dlCount(w, "b"), k = dlCount(w, "c"); return i <= j && j <= k; },
+    words: [
+      { s: "aaabbbccc", ok: true },
+      { s: "aaabbccc", ok: false, why: "Not in L — 3 a's but only 2 b's, and the language demands i ≤ j." },
+      { s: "ab", ok: false, why: "Too short (<b>|w| ≥ n</b>, n = 3) — and with no c's at all, j ≤ k fails anyway." },
+      { s: "cccbbbaaa", ok: false, why: "Not in L — the blocks must appear in the order a's, then b's, then c's." },
+    ],
+    splits: [
+      { lab: "Both pieces inside the a-block", vs: 0, ve: 1, xe: 2, ye: 3 },
+      { lab: "v in the a's, y in the b's", vs: 2, ve: 3, xe: 3, ye: 4 },
+      { lab: "Both pieces inside the b-block", vs: 3, ve: 4, xe: 5, ye: 6 },
+      { lab: "v in the b's, y in the c's", vs: 5, ve: 6, xe: 6, ye: 7 },
+      { lab: "Both pieces inside the c-block", vs: 6, ve: 7, xe: 8, ye: 9 },
+    ],
+    proof: "Suppose L were context-free, with pumping length n. Choose <b>w = aⁿbⁿcⁿ</b> ∈ L, |w| ≥ n. Write w = uvxyz with |vxy| ≤ n and |vy| > 0. Because the window is at most n long it cannot reach both the a's and the c's, giving two cases. <b>If vxy misses the c's, pump UP:</b> the a's or b's grow while k stays n, so either i > j or j > k. <b>If vxy touches the c's</b> (so it misses the a's), <b>pump DOWN to i = 0:</b> the c's (and possibly b's) shrink while i stays n, so i > k. Either way the pumped word leaves L — a contradiction. Hence L is not context-free. ∎",
+  },
+];
+
+let D = null;
+
+function dlPieces(d, sp, w) {
+  if (d.kind === "cfl") return { u: w.slice(0, sp.vs), v: w.slice(sp.vs, sp.ve), x: w.slice(sp.ve, sp.xe), y: w.slice(sp.xe, sp.ye), z: w.slice(sp.ye) };
+  return { x: w.slice(0, sp.ys), y: w.slice(sp.ys, sp.ye), z: w.slice(sp.ye) };
+}
+function dlPump(d, sp, w, i) {
+  const p = dlPieces(d, sp, w);
+  return d.kind === "cfl" ? p.u + p.v.repeat(i) + p.x + p.y.repeat(i) + p.z : p.x + p.y.repeat(i) + p.z;
+}
+function dlWordHTML(d, sp, w) {
+  let cells = [];
+  for (let i = 0; i < w.length; i++) {
+    let cls = "", lab = "";
+    if (d.kind === "cfl") {
+      if (i >= sp.vs && i < sp.ve) { cls = "v"; lab = "v"; }
+      else if (i >= sp.ve && i < sp.xe) { cls = "x"; lab = "x"; }
+      else if (i >= sp.xe && i < sp.ye) { cls = "y"; lab = "y"; }
+    } else if (i >= sp.ys && i < sp.ye) { cls = "y"; lab = "y"; }
+    cells.push(`<span class="dl-cell ${cls}"><b>${w[i]}</b><i>${lab || "·"}</i></span>`);
+  }
+  return `<div class="dl-word">${cells.join("")}</div>`;
+}
+function dlPlainHTML(w) {
+  return `<div class="dl-word">${[...w].map(c => `<span class="dl-cell"><b>${c}</b><i>·</i></span>`).join("")}</div>`;
+}
+function dlCountsHTML(w) {
+  const out = ["a", "b", "c"].filter(ch => dlCount(w, ch) > 0).map(ch => `<span class="dl-count">${ch} × ${dlCount(w, ch)}</span>`);
+  out.push(`<span class="dl-count">length ${w.length}</span>`);
+  return `<div class="dl-counts">${out.join("")}</div>`;
+}
+function dlConstraint(d) {
+  return d.kind === "cfl"
+    ? "w = <b>uvxyz</b> &nbsp;·&nbsp; |vxy| ≤ n &nbsp;·&nbsp; |vy| > 0 &nbsp;·&nbsp; pump to uvⁱxyⁱz"
+    : "w = <b>xyz</b> &nbsp;·&nbsp; |xy| ≤ n &nbsp;·&nbsp; |y| > 0 &nbsp;·&nbsp; pump to xyⁱz";
+}
+
+function renderDuelMenu() {
+  S = null; pgStop(); PG.m = null; D = null;
+  window.scrollTo(0, 0);
+  P.duels = P.duels || {};
+  app.innerHTML = statbarHTML() + `
+  <div class="pg-head">
+    <button class="pg-back" id="dlback" aria-label="Back to levels">‹</button>
+    <div><div class="pg-title">⚔️ Adversary Duel</div><div class="pg-sub">Beat the pumping lemma at its own game</div></div>
+  </div>
+  <p class="pg-intro">The pumping lemma <b>is</b> a two-player game. The adversary picks the pumping length and the split; <b>you</b> pick the word and how hard to pump. Beat every split it throws and you've written the proof.</p>
+  <div class="dl-grid">
+    ${DUELS.map(d => `<button class="dl-card" data-d="${d.id}">
+      <span class="dc-emoji">${d.emoji}</span>
+      <span class="dc-text"><span class="dc-title">${d.goal}</span><span class="dc-sub">${d.sub}</span></span>
+      ${P.duels[d.id] ? `<span class="dc-done">✓</span>` : ""}
+    </button>`).join("")}
+  </div>
+  <p class="vz-note">Every duel is a proof from your exercise sheets. Win one and you get the full written-up version to copy into the exam.</p>`;
+  wireStatbar();
+  document.getElementById("dlback").addEventListener("click", renderHome);
+  app.querySelectorAll(".dl-card").forEach(b => b.addEventListener("click", () => { snd("pick"); startDuel(b.dataset.d); }));
+}
+
+function startDuel(id) {
+  const d = DUELS.find(x => x.id === id);
+  D = { d, stage: "word", si: 0, hearts: 3, word: null, say: null, sayCls: "", result: null };
+  window.scrollTo(0, 0);
+  duelRender();
+}
+
+function duelRender() {
+  const d = D.d;
+  const pips = d.splits.map((s, i) => `<span class="dl-pip ${i < D.si ? "on" : i === D.si && D.stage !== "word" ? "now" : ""}"></span>`).join("");
+  let body = "";
+
+  if (D.stage === "word") {
+    body = `
+      <div class="dl-say ${D.sayCls || ""}"><span class="ds-e">${D.sayCls === "" ? "🤖" : "🤖"}</span><span class="ds-t">${D.say || `Fine. Suppose your language <b>is</b> ${d.kind === "cfl" ? "context-free" : "regular"}. Then it has a pumping length — and mine is <b>n = ${d.n}</b>. Pick your word.`}</span></div>
+      <div class="dl-step">Step 1 · your move — choose a word</div>
+      <p class="dl-rule">It must be <b>in L</b> and at least <b>n = ${d.n}</b> long.</p>
+      <div class="dl-opts">${d.words.map((w, i) => `<button class="dl-opt" data-w="${i}">${w.s}</button>`).join("")}</div>`;
+  } else if (D.stage === "split") {
+    const sp = d.splits[D.si];
+    body = `
+      <div class="dl-say ${D.sayCls}"><span class="ds-e">🤖</span><span class="ds-t">${D.say}</span></div>
+      <div class="dl-step">Split ${D.si + 1} of ${d.splits.length} · ${sp.lab}</div>
+      ${dlWordHTML(d, sp, D.word)}
+      <p class="dl-rule">${dlConstraint(d)}</p>
+      <div class="dl-step">Step 2 · your move — how many times?</div>
+      <div class="dl-pumps">
+        <button class="dl-pump" data-i="0">i = 0</button>
+        <button class="dl-pump" data-i="2">i = 2</button>
+        <button class="dl-pump" data-i="3">i = 3</button>
+      </div>`;
+  } else if (D.stage === "shot") {
+    const r = D.result;
+    body = `
+      <div class="dl-say ${r.win ? "good" : ""}"><span class="ds-e">${r.win ? "🎉" : "🤖"}</span><span class="ds-t">${D.say}</span></div>
+      <div class="dl-step" style="text-transform:none; font-size:.78rem">Pumping to <b>i = ${r.i}</b> gives</div>
+      ${dlPlainHTML(r.w || "ε")}
+      ${dlCountsHTML(r.w)}
+      <p class="dl-rule">${r.win ? "<b style='color:var(--good)'>Not in L</b> — that's your contradiction." : "<b style='color:var(--bad)'>Still in L</b> — no contradiction, so this split survives."}</p>
+      <div class="dl-pumps"><button class="dl-pump" id="dlnext">${r.win ? (D.si + 1 >= d.splits.length ? "Finish the proof" : "Next split ›") : "Try again"}</button></div>`;
+  } else if (D.stage === "won") {
+    body = `
+      <div class="dl-say good"><span class="ds-e">🏆</span><span class="ds-t">Every split beaten. The adversary has no moves left — the assumption must have been wrong.</span></div>
+      <div class="dl-step">The proof you just built</div>
+      <p style="font-size:.9rem; line-height:1.65; background:var(--code-bg); padding:.9rem; border-radius:14px">${d.proof}</p>
+      <div class="dl-pumps" style="margin-top:1rem">
+        <button class="dl-pump" id="dlagain" style="background:var(--surface); color:var(--ink); border-bottom-color:var(--line)">Replay</button>
+        <button class="dl-pump" id="dlmenu">More duels ›</button>
+      </div>`;
+  } else if (D.stage === "lost") {
+    body = `
+      <div class="dl-say"><span class="ds-e">🤖</span><span class="ds-t">Out of hearts — the adversary survives this round, so the proof doesn't go through. Nothing lost: run it again now you've seen its tricks.</span></div>
+      <div class="dl-pumps" style="margin-top:1rem">
+        <button class="dl-pump" id="dlagain">Rematch</button>
+        <button class="dl-pump" id="dlmenu" style="background:var(--surface); color:var(--ink); border-bottom-color:var(--line)">Back</button>
+      </div>`;
+  }
+
+  app.innerHTML = statbarHTML() + `
+  <div class="pg-head">
+    <button class="pg-back" id="dlback" aria-label="Back to the duel list">‹</button>
+    <div><div class="pg-title">${d.emoji} ${d.title}</div><div class="pg-sub">Prove: ${d.goal}</div></div>
+  </div>
+  <div class="dl-goal">${d.goal}</div>
+  <div class="dl-prog">${pips}</div>
+  <div class="dl-hearts">${"❤️".repeat(D.hearts)}${"🤍".repeat(3 - D.hearts)}</div>
+  ${body}
+  <div class="spacer" style="height:2rem"></div>`;
+  wireStatbar();
+  document.getElementById("dlback").addEventListener("click", renderDuelMenu);
+
+  app.querySelectorAll(".dl-opt").forEach(b => b.addEventListener("click", () => duelPickWord(+b.dataset.w)));
+  app.querySelectorAll(".dl-pump[data-i]").forEach(b => b.addEventListener("click", () => duelPump(+b.dataset.i)));
+  const nx = document.getElementById("dlnext");
+  if (nx) nx.addEventListener("click", () => {
+    snd("pick");
+    if (!D.result.win) { D.stage = "split"; D.say = "Same split. Think again — which pump breaks it?"; D.sayCls = ""; return duelRender(); }
+    D.si++;
+    if (D.si >= D.d.splits.length) return duelWin();
+    D.stage = "split"; D.sayCls = "";
+    D.say = `Not bad. But I get to choose <b>any</b> legal split — so try <b>this</b> one.`;
+    duelRender();
+  });
+  const ag = document.getElementById("dlagain");
+  if (ag) ag.addEventListener("click", () => { snd("pick"); startDuel(d.id); });
+  const mn = document.getElementById("dlmenu");
+  if (mn) mn.addEventListener("click", () => { snd("pick"); renderDuelMenu(); });
+}
+
+function duelPickWord(i) {
+  const w = D.d.words[i];
+  if (!w.ok) {
+    snd("fail");
+    D.hearts--;
+    if (D.hearts <= 0) { D.stage = "lost"; return duelRender(); }
+    D.sayCls = ""; D.say = `<b>Rejected.</b> ${w.why}`;
+    return duelRender();
+  }
+  snd("pick");
+  D.word = w.s;
+  D.stage = "split"; D.si = 0; D.sayCls = "calm";
+  D.say = `Good word — it's in L and long enough. Now <b>I</b> choose the split, and you must beat <b>every</b> one I can make.`;
+  duelRender();
+}
+
+function duelPump(i) {
+  const d = D.d, sp = d.splits[D.si];
+  const pumped = dlPump(d, sp, D.word, i);
+  const win = !d.inL(pumped);
+  D.result = { i, w: pumped, win };
+  D.stage = "shot";
+  if (win) {
+    snd("win");
+    D.say = `Ouch. Pumping to i = ${i} knocks it clean out of L — this split is dead.`;
+  } else {
+    snd("fail");
+    D.hearts--;
+    if (D.hearts <= 0) { D.stage = "lost"; return duelRender(); }
+    D.say = `Ha — still in L. That pump doesn't break anything.` + (d.hint ? ` ${d.hint}` : ` Pick a different i.`);
+  }
+  duelRender();
+}
+
+function duelWin() {
+  P.duels = P.duels || {};
+  const first = !P.duels[D.d.id];
+  addXP(first ? 15 : 5);
+  P.duels[D.d.id] = (P.duels[D.d.id] || 0) + 1;
+  save();
+  snd("goal");
+  D.stage = "won";
+  duelRender();
+}
+
 /* ---------- HOME ---------- */
 function renderHome() {
   S = null; pgStop(); PG.m = null;
@@ -2385,6 +2724,14 @@ function renderHome() {
       <div class="qc-sub">Watch Dijkstra, AVL, heaps and five more actually run — step by step, narrated.</div>
     </div>
     <button class="btn" data-act="pg" style="background:var(--gold); border-bottom-color:#8a6712">Open</button>
+  </div>
+  <div class="quickcard" style="border-color:var(--bad); background:var(--bad-soft)">
+    <span class="qc-emoji">⚔️</span>
+    <div class="qc-text">
+      <div class="qc-title">Adversary Duel</div>
+      <div class="qc-sub">Fight the pumping lemma. It picks n and the split — you pick the word and the pump. Beat every split and you've written the proof.</div>
+    </div>
+    <button class="btn" data-act="duel" style="background:var(--bad); border-bottom-color:var(--bad-deep)">Fight</button>
   </div>`;
   let lastUnit = "";
   LEVELS.forEach((L, i) => {
@@ -2419,6 +2766,8 @@ function renderHome() {
   if (sb && !sb.disabled) sb.addEventListener("click", () => { snd("pick"); startLesson({ mode: "smart" }); });
   const pb = app.querySelector('[data-act="pg"]');
   if (pb) pb.addEventListener("click", () => { snd("pick"); renderPlayground(); });
+  const db = app.querySelector('[data-act="duel"]');
+  if (db) db.addEventListener("click", () => { snd("pick"); renderDuelMenu(); });
 }
 
 /* ---------- STATS ---------- */
