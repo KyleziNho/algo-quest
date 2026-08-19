@@ -609,6 +609,35 @@
   .e-drop line { stroke: var(--vz-drop); opacity: .35; }
   .vz-w.hot { fill: var(--gold); font-weight: 900; font-size: 13px; }
 
+  /* ---------- mark sprint ---------- */
+  .es-card { display:flex; align-items:center; gap:.75rem; text-align:left; width:100%; padding:.85rem .9rem; background:var(--surface); border:2px solid var(--line); border-bottom-width:4px; border-radius:16px; cursor:pointer; color:var(--ink); font:inherit; margin-bottom:.6rem; }
+  .es-card:active { transform:translateY(2px); border-bottom-width:2px; }
+  .es-card .ec-emoji { font-size:1.6rem; flex:none; }
+  .es-card .ec-text { flex:1; min-width:0; }
+  .es-card .ec-title { display:block; font-weight:900; font-size:.98rem; line-height:1.3; }
+  .es-card .ec-sub { display:block; font-size:.76rem; color:var(--muted); margin-top:3px; }
+  .es-card .ec-best { flex:none; font-weight:900; font-size:.8rem; color:var(--good); }
+  .es-stem { background:var(--code-bg); border-radius:14px; padding:.85rem .9rem; font-size:.98rem; line-height:1.6; margin:.6rem 0; }
+  .es-stem b { color:var(--accent); }
+  .es-meta { display:flex; justify-content:space-between; align-items:center; margin:.2rem 0 .5rem; }
+  .es-part { font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; font-weight:900; color:var(--muted); }
+  .es-marks { font-weight:900; font-size:.82rem; background:var(--gold-soft); color:#8a6712; border-radius:8px; padding:.2rem .5rem; }
+  .es-timer { font-family:ui-monospace,Menlo,monospace; font-weight:900; font-size:2rem; text-align:center; margin:.6rem 0 .1rem; letter-spacing:1px; }
+  .es-target { text-align:center; font-size:.76rem; color:var(--muted); margin-bottom:.8rem; }
+  .es-prompt { text-align:center; font-size:.88rem; line-height:1.55; color:var(--muted); margin:.8rem 0; }
+  .es-pt { display:flex; gap:.6rem; align-items:flex-start; width:100%; text-align:left; padding:.6rem .7rem; margin-bottom:.45rem; background:var(--surface); border:2px solid var(--line); border-radius:12px; cursor:pointer; color:var(--ink); font:inherit; font-size:.88rem; line-height:1.5; }
+  .es-pt.on { background:var(--good-soft); border-color:var(--good); }
+  .es-box { flex:none; width:1.15rem; height:1.15rem; border-radius:5px; border:2px solid var(--line); display:grid; place-items:center; font-size:.7rem; font-weight:900; margin-top:1px; }
+  .es-pt.on .es-box { background:var(--good); border-color:var(--good); color:#fff; }
+  .es-pm { flex:none; font-weight:900; font-size:.76rem; color:var(--muted); }
+  .es-big { text-align:center; font-weight:900; font-size:2.4rem; margin:.5rem 0 .1rem; }
+  .es-bar { height:10px; border-radius:5px; background:var(--line); overflow:hidden; margin:.5rem 0 1rem; }
+  .es-bar i { display:block; height:100%; background:var(--good); border-radius:5px; }
+  .es-row { display:flex; justify-content:space-between; font-size:.84rem; padding:.4rem .1rem; border-bottom:1px solid var(--line); }
+  .es-btn { width:100%; padding:.85rem; font-weight:900; font-size:1rem; background:var(--accent); color:#fff; border:none; border-bottom:4px solid var(--accent-deep); border-radius:14px; cursor:pointer; margin-top:.6rem; }
+  .es-btn:active { transform:translateY(2px); border-bottom-width:2px; }
+  .es-btn.ghost { background:var(--surface); color:var(--ink); border-bottom-color:var(--line); }
+
   /* ---------- proof lab ---------- */
   .pf-goal { background: var(--accent-soft); border: 2px solid var(--accent); border-radius: 12px; padding: .5rem .7rem; font-size: .84rem; font-weight: 800; text-align: center; margin: .7rem 0 .3rem; }
   .pf-goal span { font-family: ui-monospace, Menlo, monospace; }
@@ -2721,6 +2750,275 @@ function duelWin() {
   duelRender();
 }
 
+/* ================= MARK SPRINT =================
+   Essays aren't prose, they're a LIST OF MARK-EARNING POINTS. So: read the
+   stem, dump everything you'd write (out loud or on paper — no typing), then
+   reveal the real mark scheme and tick what you actually got. You score
+   yourself out of the real marks. Production first, recognition only to grade. */
+
+const ESSAYS = [
+  {
+    id: "bandwidth", emoji: "🌉", title: "Bandwidth & Floyd–Warshall", sub: "Mock Q10 · the single most likely question",
+    parts: [
+      { q: "Describe the Floyd–Warshall algorithm for finding the shortest path between all pairs of vertices in a weighted, undirected graph with positive edge weights.", m: 4, pts: [
+        { t: "Initialise d[i][j] to the direct edge weight, 0 on the diagonal, ∞ where there's no edge", m: 1 },
+        { t: "Three nested loops: outer over k, then i, then j", m: 1 },
+        { t: "Update rule: <b>d[i][j] ← min(d[i][j], d[i][k] + d[k][j])</b>", m: 1 },
+        { t: "Explain the outer loop: after round k, d holds the best routes using only nodes 1…k as intermediate stops", m: 1 },
+      ] },
+      { q: "Each connection has a <b>bandwidth</b>. Along a chain, the maximum flow rate is the bandwidth of the LOWEST-bandwidth link (100, 56, 1000 → 56). Show how to adapt Floyd–Warshall to compute the highest-bandwidth connection between any two devices.", m: 6, pts: [
+        { t: "Update rule: <b>b[i][j] ← max(b[i][j], min(b[i][k], b[k][j]))</b>", m: 2 },
+        { t: "Inner <b>min</b>: a route is only as good as its narrowest link — the bottleneck", m: 2 },
+        { t: "Outer <b>max</b>: keep whichever of the two routes is wider", m: 1 },
+        { t: "Initialise b[i][j] to the direct link's capacity, 0 where there is no link", m: 1 },
+      ] },
+      { q: "What is the asymptotic complexity of this algorithm, as a function of the number of devices?", m: 2, pts: [
+        { t: "<b>Θ(V³)</b>", m: 1 },
+        { t: "Unchanged from standard Floyd–Warshall — same three nested loops, only the operations inside differ", m: 1 },
+      ] },
+      { q: "A company wants to monitor bandwidth <b>daily</b>. There are ~10⁵ devices and the machine runs ~10⁹ operations per second. Is the Floyd–Warshall approach suitable? Justify your answer.", m: 2, pts: [
+        { t: "V³ = (10⁵)³ = <b>10¹⁵</b> operations", m: 1 },
+        { t: "10¹⁵ ÷ 10⁹ = 10⁶ seconds ≈ <b>11–12 days</b> — far too slow for a daily job", m: 1 },
+      ] },
+      { q: "Each device has only ~3 direct connections. Describe an alternative algorithm fast enough to run daily. Include the important data structures, and state the complexity. (You need not prove correctness.)", m: 6, pts: [
+        { t: "Note the graph is <b>sparse</b>: 3 links each means E ≈ 1.5V", m: 1 },
+        { t: "Run a <b>widest-path Dijkstra from every vertex</b>", m: 1 },
+        { t: "Modification: <b>max-heap</b>, and relax with <b>min</b> instead of + — take the bottleneck, keep the biggest", m: 1 },
+        { t: "One run is O((V+E) log V) ≈ O(V log V); V runs gives <b>O(V² log V)</b>", m: 1 },
+        { t: "≈ 2×10¹¹ operations ≈ <b>a few minutes</b> — comfortably a daily job", m: 1 },
+        { t: "Data structures: <b>adjacency list</b> (a matrix would force V² per run, undoing the gain) + <b>binary heap</b> (source of the log V)", m: 1 },
+      ] },
+    ],
+  },
+  {
+    id: "fib", emoji: "🐇", title: "Fibonacci & dynamic programming", sub: "Mock Q9 · with both induction bounds",
+    parts: [
+      { q: "fib(0) = fib(1) = 1. How many <b>+</b> operations does the direct recursive implementation need to compute fib(3), fib(6) and fib(12)?", m: 2, pts: [
+        { t: "fib(3) → <b>2</b> additions; fib(6) → <b>12</b>", m: 1 },
+        { t: "fib(12) → <b>232</b> additions (the pattern is fib(n) − 1)", m: 1 },
+      ] },
+      { q: "Write down a recurrence for T(n), the number of additions needed to compute fib(n) this way, and show that T(n) is O(2ⁿ).", m: 4, pts: [
+        { t: "<b>T(n) = T(n−1) + T(n−2) + 1</b>, with T(0) = T(1) = 0", m: 1 },
+        { t: "Guess T(n) ≤ c·2ⁿ and check <b>two</b> base cases, choosing c (c = 1 works)", m: 1 },
+        { t: "Assume for all k &lt; n, substitute: T(n) ≤ c2ⁿ⁻¹ + c2ⁿ⁻² + 1 = 3c·2ⁿ⁻² + 1", m: 1 },
+        { t: "Since 3 ≤ 4, that's ≤ 4c·2ⁿ⁻² = <b>c·2ⁿ</b> exactly — the guessed form, so the induction closes ∎", m: 1 },
+      ] },
+      { q: "Show how to use dynamic programming to compute <b>all</b> the values fib(0)…fib(n) more efficiently, and explain why it performs so much better.", m: 6, pts: [
+        { t: "Build an array bottom-up: F[0] = F[1] = 1, then F[i] = F[i−1] + F[i−2] for i = 2…n", m: 2 },
+        { t: "Each value is computed <b>once</b> and stored, then read in O(1) when needed", m: 1 },
+        { t: "The naive version recomputes the same subproblems over and over — fib(2) alone is rebuilt 5 times inside fib(6)", m: 2 },
+        { t: "That duplication is exactly what the table removes: <b>overlapping subproblems</b> solved once", m: 1 },
+      ] },
+      { q: "How many additions does your DP algorithm use to compute fib(12)? What is its complexity as a function of n?", m: 2, pts: [
+        { t: "<b>11</b> additions — one for each of fib(2)…fib(12)", m: 1 },
+        { t: "<b>Θ(n)</b> time (and Θ(n) space, or Θ(1) if you keep only the last two values)", m: 1 },
+      ] },
+      { q: "Returning to the recursive algorithm, show that T(n) is Ω((3/2)ⁿ).", m: 6, pts: [
+        { t: "Guess T(n) ≥ c·(3/2)ⁿ; check <b>two</b> base cases and pick c (c = 2/3 works)", m: 1 },
+        { t: "Assume for all k &lt; n and substitute: T(n) ≥ c(3/2)ⁿ⁻¹ + c(3/2)ⁿ⁻² + 1", m: 1 },
+        { t: "Drop the +1 — for a <b>lower</b> bound that only makes the right side smaller, so ≥ still holds", m: 1 },
+        { t: "Factor out the smallest power: = c(3/2)ⁿ⁻² · [(3/2) + 1] = c(3/2)ⁿ⁻² · (5/2)", m: 1 },
+        { t: "Write the target in the same units: c(3/2)ⁿ = c(3/2)ⁿ⁻² · (9/4)", m: 1 },
+        { t: "5/2 ≥ 9/4 (2.5 ≥ 2.25), so T(n) ≥ <b>c(3/2)ⁿ</b> exactly ∎", m: 1 },
+      ] },
+    ],
+  },
+  {
+    id: "reliab", emoji: "📡", title: "Most-reliable routing", sub: "Same skill, new costume — do this to test transfer",
+    parts: [
+      { q: "Each link has a <b>reliability</b> p ∈ [0,1] — the chance a packet crosses safely. Links fail independently, so a route's reliability is the <b>product</b> of its links. Show how to adapt Floyd–Warshall to find the most reliable route between all pairs.", m: 6, pts: [
+        { t: "Update rule: <b>r[i][j] ← max(r[i][j], r[i][k] × r[k][j])</b>", m: 2 },
+        { t: "<b>×</b> because independent probabilities multiply along a route", m: 2 },
+        { t: "<b>max</b> because you want the most reliable of the two options", m: 1 },
+        { t: "Initialise r[i][j] to the direct link's reliability, 0 where there's no link, 1 on the diagonal", m: 1 },
+      ] },
+      { q: "There are 10⁴ devices and the machine does 10⁹ operations per second. Is this practical as a nightly job? Justify with figures.", m: 2, pts: [
+        { t: "V³ = (10⁴)³ = <b>10¹²</b> operations", m: 1 },
+        { t: "10¹² ÷ 10⁹ = <b>1000 seconds ≈ 17 minutes</b> — fine overnight", m: 1 },
+      ] },
+      { q: "Dijkstra requires non-negative edge weights. Explain why an adapted Dijkstra is still correct for this reliability problem.", m: 5, pts: [
+        { t: "Every reliability is ≤ 1, so multiplying by another link can only <b>shrink</b> a route's reliability", m: 2 },
+        { t: "So extending a route never improves it — the exact analogue of 'edges never reduce distance'", m: 1 },
+        { t: "Therefore once a node is settled with the best reliability, no later route can beat it", m: 1 },
+        { t: "Alternative argument: take <b>−log p</b>, which is ≥ 0, turning it into ordinary shortest path with non-negative weights", m: 1 },
+      ] },
+    ],
+  },
+  {
+    id: "pump", emoji: "🧱", title: "Pumping lemma (context-free)", sub: "Semester 1 · your lecturer's benchmark",
+    parts: [
+      { q: "State the pumping lemma for context-free languages, explaining what each condition is doing.", m: 5, pts: [
+        { t: "If L is context-free there is a pumping length n such that every w ∈ L with <b>|w| ≥ n</b> can be written w = <b>uvxyz</b>", m: 2 },
+        { t: "with <b>|vxy| ≤ n</b> and <b>|vy| &gt; 0</b>", m: 1 },
+        { t: "such that <b>uvⁱxyⁱz ∈ L</b> for every i ≥ 0", m: 1 },
+        { t: "|vxy| ≤ n keeps the pumped window <b>short</b>, so it can't reach across the whole word; |vy| &gt; 0 guarantees something actually gets pumped", m: 1 },
+      ] },
+      { q: "Prove that L = {aⁿbⁿcⁿ | n ≥ 0} is not context-free.", m: 8, pts: [
+        { t: "Assume for contradiction that L <b>is</b> context-free, with pumping length n", m: 1 },
+        { t: "Choose <b>w = aⁿbⁿcⁿ</b>, which is in L and has |w| ≥ n", m: 2 },
+        { t: "Write w = uvxyz with |vxy| ≤ n and |vy| &gt; 0", m: 1 },
+        { t: "Since the window vxy is at most n long, it <b>cannot touch both the a-block and the c-block</b>", m: 2 },
+        { t: "So at least one letter's count is untouched while pumping changes another — the counts stop being equal", m: 1 },
+        { t: "Hence uv²xy²z ∉ L, contradicting the lemma, so L is not context-free ∎", m: 1 },
+      ] },
+      { q: "A student says: <i>“I pumped every word in L and they all stayed in L, so L must be regular.”</i> Explain what is wrong with this reasoning.", m: 5, pts: [
+        { t: "The lemma states <b>regular ⟹ pumpable</b>, not the other way round", m: 2 },
+        { t: "Assuming the converse is a logical error — pumpable does not imply regular", m: 1 },
+        { t: "There exist non-regular languages that satisfy the pumping condition anyway", m: 1 },
+        { t: "The lemma is a <b>one-way tool</b>: it can only ever prove a language is NOT regular", m: 1 },
+      ] },
+    ],
+  },
+  {
+    id: "trees", emoji: "🌲", title: "AVL trees & heaps", sub: "Sheets 2.6–2.7 · recurrences and Θ(n) make-heap",
+    parts: [
+      { q: "What heights can a binary search tree containing 7 elements have? What about an AVL tree with 7 elements? Justify.", m: 4, pts: [
+        { t: "BST: from <b>3 levels</b> (perfectly packed, 1+2+4 = 7) up to <b>7 levels</b> (a straight chain)", m: 2 },
+        { t: "AVL: only <b>3 or 4 levels</b>", m: 1 },
+        { t: "5 levels would need at least 12 nodes, so it's impossible with 7", m: 1 },
+      ] },
+      { q: "Write a recurrence for N(h), the minimum number of nodes in an AVL tree of height h. Explain the connection to the Fibonacci numbers, and use it to argue that AVL height is O(log n).", m: 7, pts: [
+        { t: "<b>N(h) = N(h−1) + N(h−2) + 1</b>, with N(0) = 1, N(1) = 2", m: 2 },
+        { t: "To be as sparse as the rules allow, one subtree has height h−1 and the other h−2 — the biggest gap still legal — plus the root", m: 2 },
+        { t: "That is the <b>Fibonacci</b> recurrence with a +1, so N(h) grows exponentially in h", m: 2 },
+        { t: "Inverting: h is <b>O(log n)</b> — in fact about 1.44 log₂n", m: 1 },
+      ] },
+      { q: "Show that make-heap on n unordered items costs Θ(n), not Θ(n log n).", m: 6, pts: [
+        { t: "Work <b>bottom-up</b>, sifting each node <b>down</b>, starting from slot ⌊n/2⌋ − 1", m: 1 },
+        { t: "A node's cost is its <b>own height</b> — its distance to the bottom, not the height of the whole tree", m: 2 },
+        { t: "Half the nodes are leaves and cost 0; a quarter sink at most 1; an eighth at most 2, and so on", m: 2 },
+        { t: "Summing n/2·0 + n/4·1 + n/8·2 + … converges to about n, so <b>Θ(n)</b>; only the root ever pays the full log n", m: 1 },
+      ] },
+      { q: "Given that make-heap is Θ(n), explain why heapsort is still Θ(n log n).", m: 3, pts: [
+        { t: "Building the heap is Θ(n), but sorting then requires <b>n deleteMax operations</b>", m: 1 },
+        { t: "Each deleteMax sifts the new root down through <b>log n</b> levels", m: 1 },
+        { t: "Θ(n) + Θ(n log n) = <b>Θ(n log n)</b> — building is cheap, draining is not", m: 1 },
+      ] },
+    ],
+  },
+];
+
+let ES = null;
+function esStop() { if (ES && ES.timer) { clearInterval(ES.timer); ES.timer = null; } }
+function esMax(e) { return e.parts.reduce((s, p) => s + p.m, 0); }
+function esFmt(s) { return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+
+function renderEssayMenu() {
+  S = null; pgStop(); PG.m = null; D = null; esStop(); ES = null;
+  window.scrollTo(0, 0);
+  P.essay = P.essay || {};
+  app.innerHTML = statbarHTML() + `
+  <div class="pg-head">
+    <button class="pg-back" id="esback" aria-label="Back to levels">‹</button>
+    <div><div class="pg-title">✍️ Mark Sprint</div><div class="pg-sub">Dump the points, then mark yourself</div></div>
+  </div>
+  <p class="pg-intro">An essay answer isn't prose — it's a <b>list of mark-earning points</b>. Read the question, say or scribble everything you'd write, then reveal the real mark scheme and tick what you actually got. No typing.</p>
+  ${ESSAYS.map(e => {
+    const best = P.essay[e.id];
+    return `<button class="es-card" data-e="${e.id}">
+      <span class="ec-emoji">${e.emoji}</span>
+      <span class="ec-text"><span class="ec-title">${e.title}</span><span class="ec-sub">${e.sub} · ${esMax(e)} marks</span></span>
+      ${best != null ? `<span class="ec-best">${best}%</span>` : ""}
+    </button>`;
+  }).join("")}
+  <p class="vz-note">Be honest when you tick. A point you half-remembered is a point you'd lose under pressure.</p>`;
+  wireStatbar();
+  document.getElementById("esback").addEventListener("click", renderHome);
+  app.querySelectorAll(".es-card").forEach(b => b.addEventListener("click", () => { snd("pick"); startEssay(b.dataset.e); }));
+}
+
+function startEssay(id) {
+  esStop();
+  ES = { e: ESSAYS.find(x => x.id === id), pi: 0, stage: "recall", ticked: [], got: [], secs: 0, timer: null };
+  window.scrollTo(0, 0);
+  esRender();
+}
+
+function esRender() {
+  const e = ES.e, p = e.parts[ES.pi];
+  const letter = String.fromCharCode(97 + ES.pi);
+  let body = "";
+
+  if (ES.stage === "recall") {
+    body = `
+      <div class="es-meta"><span class="es-part">Part (${letter}) of ${e.parts.length}</span><span class="es-marks">${p.m} marks</span></div>
+      <div class="es-stem">${p.q}</div>
+      <div class="es-timer" id="estime">0:00</div>
+      <div class="es-target">aim for about ${Math.max(30, p.m * 20)} seconds</div>
+      <p class="es-prompt">Say it out loud, or scribble bullet points.<br>Get <b>everything</b> down before you look.</p>
+      <button class="es-btn" id="esreveal">I'm done — show the mark scheme</button>`;
+  } else if (ES.stage === "mark") {
+    const scored = ES.ticked.reduce((s, i) => s + p.pts[i].m, 0);
+    body = `
+      <div class="es-meta"><span class="es-part">Part (${letter}) · tick what you got</span><span class="es-marks">${scored} / ${p.m}</span></div>
+      <div class="es-stem" style="font-size:.86rem; opacity:.75">${p.q}</div>
+      ${p.pts.map((pt, i) => `<button class="es-pt ${ES.ticked.includes(i) ? "on" : ""}" data-i="${i}">
+        <span class="es-box">${ES.ticked.includes(i) ? "✓" : ""}</span>
+        <span style="flex:1">${pt.t}</span>
+        <span class="es-pm">${pt.m}</span>
+      </button>`).join("")}
+      <button class="es-btn" id="esnext">${ES.pi + 1 >= e.parts.length ? "See my total ›" : "Next part ›"}</button>`;
+  } else {
+    const total = ES.got.reduce((s, g) => s + g, 0), max = esMax(e);
+    const pct = Math.round(total / max * 100);
+    const verdict = pct >= 80 ? "Exam-ready. Do a different question." : pct >= 55 ? "Solid core — the gaps are the marks you're leaving behind." : "Worth one more run right now while it's fresh.";
+    body = `
+      <div class="es-big">${total} / ${max}</div>
+      <div class="es-bar"><i style="width:${pct}%"></i></div>
+      <p class="es-prompt" style="margin-top:0"><b>${pct}%</b> — ${verdict}</p>
+      ${e.parts.map((p, i) => `<div class="es-row"><span>Part (${String.fromCharCode(97 + i)})</span><span><b>${ES.got[i]}</b> / ${p.m}</span></div>`).join("")}
+      <button class="es-btn" id="esagain">Run it again</button>
+      <button class="es-btn ghost" id="esmenu">Another question</button>`;
+  }
+
+  app.innerHTML = statbarHTML() + `
+  <div class="pg-head">
+    <button class="pg-back" id="esback" aria-label="Back to the question list">‹</button>
+    <div><div class="pg-title">${e.emoji} ${e.title}</div><div class="pg-sub">${e.sub}</div></div>
+  </div>
+  ${body}
+  <div class="spacer" style="height:2rem"></div>`;
+  wireStatbar();
+  document.getElementById("esback").addEventListener("click", renderEssayMenu);
+
+  const rv = document.getElementById("esreveal");
+  if (rv) {
+    esStop();
+    ES.secs = 0;
+    ES.timer = setInterval(() => {
+      const el = document.getElementById("estime");
+      if (!el) return esStop();
+      ES.secs++; el.textContent = esFmt(ES.secs);
+    }, 1000);
+    rv.addEventListener("click", () => { snd("pick"); esStop(); ES.stage = "mark"; ES.ticked = []; esRender(); });
+  }
+  app.querySelectorAll(".es-pt").forEach(b => b.addEventListener("click", () => {
+    const i = +b.dataset.i;
+    const at = ES.ticked.indexOf(i);
+    if (at >= 0) ES.ticked.splice(at, 1); else { ES.ticked.push(i); snd("pick"); }
+    esRender();
+  }));
+  const nx = document.getElementById("esnext");
+  if (nx) nx.addEventListener("click", () => {
+    const part = e.parts[ES.pi];
+    ES.got[ES.pi] = ES.ticked.reduce((s, i) => s + part.pts[i].m, 0);
+    ES.pi++;
+    if (ES.pi >= e.parts.length) {
+      ES.stage = "done";
+      const pct = Math.round(ES.got.reduce((s, g) => s + g, 0) / esMax(e) * 100);
+      P.essay = P.essay || {};
+      if (P.essay[e.id] == null || pct > P.essay[e.id]) P.essay[e.id] = pct;
+      addXP(10); save(); snd("goal");
+    } else { ES.stage = "recall"; ES.ticked = []; snd("pick"); }
+    window.scrollTo(0, 0);
+    esRender();
+  });
+  const ag = document.getElementById("esagain");
+  if (ag) ag.addEventListener("click", () => { snd("pick"); startEssay(e.id); });
+  const mn = document.getElementById("esmenu");
+  if (mn) mn.addEventListener("click", () => { snd("pick"); renderEssayMenu(); });
+}
+
 /* ================= PROOF LAB =================
    Induction is a chain, so you can't quiz it — you have to watch it build.
    Every step shows what changed, WHY it was allowed, and the target stays
@@ -2934,6 +3232,14 @@ function renderHome() {
       <div class="qc-sub">Mock Q9b &amp; Q9e built line by line — why you're allowed to assume it, where the factoring comes from, and the one comparison it all collapses to.</div>
     </div>
     <button class="btn" data-act="proof" style="background:var(--purple); border-bottom-color:var(--purple-deep)">Open</button>
+  </div>
+  <div class="quickcard" style="border-color:var(--accent); background:var(--accent-soft)">
+    <span class="qc-emoji">✍️</span>
+    <div class="qc-text">
+      <div class="qc-title">Mark Sprint</div>
+      <div class="qc-sub">Written questions from the mock and sheets. Dump every point you'd write, then tick yourself against the real mark scheme.</div>
+    </div>
+    <button class="btn" data-act="essay">Start</button>
   </div>`;
   let lastUnit = "";
   LEVELS.forEach((L, i) => {
@@ -2972,6 +3278,8 @@ function renderHome() {
   if (db) db.addEventListener("click", () => { snd("pick"); renderDuelMenu(); });
   const fb = app.querySelector('[data-act="proof"]');
   if (fb) fb.addEventListener("click", () => { snd("pick"); renderProofLab(); });
+  const eb = app.querySelector('[data-act="essay"]');
+  if (eb) eb.addEventListener("click", () => { snd("pick"); renderEssayMenu(); });
 }
 
 /* ---------- STATS ---------- */
